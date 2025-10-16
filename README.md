@@ -1,6 +1,6 @@
-# simple_app
+# MyNote
 
-A new Flutter project.
+A simple for secure notes
 
 ## Getting Started
 

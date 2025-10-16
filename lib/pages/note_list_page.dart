@@ -203,15 +203,41 @@ class _NoteListPageState extends State<NoteListPage> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            const DrawerHeader(
+            DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: Colors.blue, // Keep the color as a fallback
+                image: DecorationImage(
+                  image: AssetImage(widget.themeMode == ThemeMode.light
+                      ? 'assets/sidebar_bg_light.jpg'
+                      : 'assets/sidebar_bg_dark.jpg'),
+                  fit: BoxFit.cover,
+                ),
               ),
-              child: Text(
-                'Settings',
-                style: TextStyle(color: Colors.white, fontSize: 24),
+              child: Stack(
+                children: [
+                  const Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      'Settings',
+                      style: TextStyle(color: Colors.white, fontSize: 24),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: IconButton(
+                      icon: Icon(
+                        widget.themeMode == ThemeMode.light
+                            ? Icons.dark_mode_outlined
+                            : Icons.light_mode_outlined,
+                        color: Colors.white, // Ensure icon is visible on background
+                      ),
+                      onPressed: widget.onToggleTheme,
+                    ),
+                  ),
+                ],
               ),
             ),
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Text(
@@ -289,13 +315,6 @@ class _NoteListPageState extends State<NoteListPage> {
               ),
             ),
             const Divider(),
-            ListTile(
-              leading: Icon(widget.themeMode == ThemeMode.light
-                  ? Icons.dark_mode_outlined
-                  : Icons.light_mode_outlined),
-              title: const Text('Toggle Theme'),
-              onTap: widget.onToggleTheme,
-            ),
           ],
         ),
       ),
