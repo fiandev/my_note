@@ -3,7 +3,7 @@ name: Flutter CI/CD
 on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:
   release:
     types: [published]
