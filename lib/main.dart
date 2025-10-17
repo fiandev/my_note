@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'pages/note_list_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'pages/main_screen.dart'; // Import the new MainScreen
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
@@ -30,21 +32,53 @@ class _MyAppState extends State<MyApp> {
   ThemeMode _themeMode = ThemeMode.light;
   AppColorScheme _colorScheme = AppColorScheme.blue;
   Color? _customColor;
+  late SharedPreferences _prefs;
 
-  void _toggleTheme() {
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    _prefs = await SharedPreferences.getInstance();
+    final themeModeIndex = _prefs.getInt('themeMode') ?? ThemeMode.light.index;
+    final colorSchemeName = _prefs.getString('colorScheme') ?? AppColorScheme.blue.name;
+    final customColorValue = _prefs.getInt('customColor');
+
+    setState(() {
+      _themeMode = ThemeMode.values[themeModeIndex];
+      _colorScheme = AppColorScheme.values.firstWhere(
+        (e) => e.name == colorSchemeName,
+        orElse: () => AppColorScheme.blue,
+      );
+      if (_colorScheme == AppColorScheme.custom && customColorValue != null) {
+        _customColor = Color(customColorValue);
+      }
+    });
+  }
+
+  Future<void> _toggleTheme() async {
     setState(() {
       _themeMode =
           _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
     });
+    await _prefs.setInt('themeMode', _themeMode.index);
   }
 
-  void _changeColorScheme(AppColorScheme newScheme, [Color? customColor]) {
+  Future<void> _changeColorScheme(AppColorScheme newScheme, [Color? customColor]) async {
     setState(() {
       _colorScheme = newScheme;
       if (newScheme == AppColorScheme.custom) {
         _customColor = customColor;
       }
     });
+    await _prefs.setString('colorScheme', _colorScheme.name);
+    if (newScheme == AppColorScheme.custom && customColor != null) {
+      await _prefs.setInt('customColor', customColor.value);
+    } else {
+      await _prefs.remove('customColor');
+    }
   }
 
   @override
@@ -73,7 +107,7 @@ class _MyAppState extends State<MyApp> {
         useMaterial3: true,
       ),
       themeMode: _themeMode,
-      home: NoteListPage(
+      home: MainScreen(
         onToggleTheme: _toggleTheme,
         themeMode: _themeMode,
         colorScheme: _colorScheme,

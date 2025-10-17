@@ -6,7 +6,6 @@ class NoteCard extends StatelessWidget {
   final Note note;
   final VoidCallback onTap;
   final VoidCallback onTogglePin;
-  final VoidCallback onDelete;
   final int index;
   final int Function(Note) getFlatListIndex;
 
@@ -15,7 +14,6 @@ class NoteCard extends StatelessWidget {
     required this.note,
     required this.onTap,
     required this.onTogglePin,
-    required this.onDelete,
     required this.index,
     required this.getFlatListIndex,
   });
@@ -92,13 +90,6 @@ class NoteCard extends StatelessWidget {
                     Text(
                       DateFormat.yMMMd().format(note.createdAt),
                       style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline,
-                          color: Colors.redAccent),
-                      onPressed: onDelete,
-                      tooltip: 'Delete Note',
                     ),
                   ],
                 ),

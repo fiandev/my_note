@@ -1,14 +1,26 @@
+import java.io.File
+
 plugins {
     id("com.android.application")
-    id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id("org.jetbrains.kotlin.android")
     id("dev.flutter.flutter-gradle-plugin")
 }
 
 android {
-    namespace = "com.example.simple_app"
+    namespace = "com.fiandev.my_note"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
+
+    defaultConfig {
+        applicationId = "com.fiandev.my_note"
+        minSdk = flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+
+        // Remove ndk.abiFilters to avoid conflicts with split-per-abi
+        // ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a") }
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -19,26 +31,51 @@ android {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
-    defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.simple_app"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+    buildTypes {
+        getByName("release") {
+            // Gunakan debug signing untuk testing
+            signingConfig = signingConfigs.getByName("debug")
+
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+        getByName("debug") {
+            isMinifyEnabled = false
+            isShrinkResources = false
+        }
     }
 
-    buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt"
+            )
         }
     }
 }
 
 flutter {
     source = "../.."
+}
+
+// Rename output file untuk testing
+afterEvaluate {
+    tasks.matching { it.name.startsWith("package") && it.name.endsWith("Release") }.configureEach {
+        doLast {
+            val outputDir = File("$buildDir/outputs/flutter-apk")
+            outputDir.listFiles()?.forEach { file ->
+                if (file.name.endsWith(".apk")) {
+                    val newName = "com.fiandev.my_note-${file.name}"
+                    file.renameTo(File(outputDir, newName))
+                }
+            }
+        }
+    }
 }

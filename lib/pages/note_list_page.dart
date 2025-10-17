@@ -1,36 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:my_note/widgets/category_list.dart';
 import '../models/note.dart';
 import '../services/note_service.dart';
-import 'note_edit_page.dart';
 import '../widgets/note_card.dart';
 import '../widgets/group_header.dart';
 import '../widgets/empty_state.dart';
 
-import 'package:my_note/main.dart';
-
 class NoteListPage extends StatefulWidget {
-  final VoidCallback onToggleTheme;
-  final ThemeMode themeMode;
-  final AppColorScheme colorScheme;
-  final void Function(AppColorScheme, [Color? customColor]) onChangeColorScheme;
-  final Color? customColor;
+  final void Function({Note? note}) onNavigateToEditPage;
 
   const NoteListPage({
     super.key,
-    required this.onToggleTheme,
-    required this.themeMode,
-    required this.colorScheme,
-    required this.onChangeColorScheme,
-    this.customColor,
+    required this.onNavigateToEditPage,
   });
 
   @override
-  State<NoteListPage> createState() => _NoteListPageState();
+  State<NoteListPage> createState() => NoteListPageState();
 }
 
-class _NoteListPageState extends State<NoteListPage> {
+class NoteListPageState extends State<NoteListPage> {
   final List<Note> _notes = [];
   bool _isLoading = true;
   static const int maxPins = 5;
@@ -40,10 +28,10 @@ class _NoteListPageState extends State<NoteListPage> {
   @override
   void initState() {
     super.initState();
-    _loadNotes();
+    loadNotes();
   }
 
-  Future<void> _loadNotes() async {
+  Future<void> loadNotes() async {
     final loadedNotes = await _noteService.loadNotes();
     if (mounted) {
       setState(() {
@@ -53,6 +41,19 @@ class _NoteListPageState extends State<NoteListPage> {
         _isLoading = false;
       });
     }
+  }
+
+  void addOrUpdateNoteAndSave(Note note) {
+    setState(() {
+      final index = _notes.indexWhere((n) => n.id == note.id);
+      if (index != -1) {
+        _notes[index] = note;
+      } else {
+        _notes.add(note);
+      }
+      _sortNotes();
+      _saveNotes();
+    });
   }
 
   Future<void> _saveNotes() async {
@@ -105,28 +106,6 @@ class _NoteListPageState extends State<NoteListPage> {
           }));
 
     return sortedGroupedNotes;
-  }
-
-  void _navigateToEditPage({Note? note}) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => NoteEditPage(note: note)),
-    );
-
-    if (result != null && result is Note) {
-      setState(() {
-        if (note == null) {
-          _notes.add(result);
-        } else {
-          final index = _notes.indexWhere((n) => n.id == result.id);
-          if (index != -1) {
-            _notes[index] = result;
-          }
-        }
-        _sortNotes();
-        _saveNotes();
-      });
-    }
   }
 
   void _deleteNote(Note note) {
@@ -195,157 +174,28 @@ class _NoteListPageState extends State<NoteListPage> {
         : _notes.where((note) => note.group == _selectedCategory).toList();
     final groupedNotes = _getGroupedNotes(filteredNotes);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('MyNote'),
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue, // Keep the color as a fallback
-                image: DecorationImage(
-                  image: AssetImage(widget.themeMode == ThemeMode.light
-                      ? 'assets/sidebar_bg_light.jpg'
-                      : 'assets/sidebar_bg_dark.jpg'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-              child: Stack(
-                children: [
-                  const Align(
-                    alignment: Alignment.topLeft,
-                    child: Text(
-                      'Settings',
-                      style: TextStyle(color: Colors.white, fontSize: 24),
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: IconButton(
-                      icon: Icon(
-                        widget.themeMode == ThemeMode.light
-                            ? Icons.dark_mode_outlined
-                            : Icons.light_mode_outlined,
-                        color: Colors.white, // Ensure icon is visible on background
-                      ),
-                      onPressed: widget.onToggleTheme,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Text(
-                'Theme Color',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-            ),
-            SizedBox(
-              height: 60,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: GestureDetector(
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text('Pick a color'),
-                              content: SingleChildScrollView(
-                                child: ColorPicker(
-                                  pickerColor: widget.customColor ?? widget.colorScheme.color,
-                                  onColorChanged: (color) {
-                                    widget.onChangeColorScheme(AppColorScheme.custom, color);
-                                  },
-                                ),
-                              ),
-                              actions: <Widget>[
-                                TextButton(
-                                  child: const Text('Done'),
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      },
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: const LinearGradient(
-                            colors: [Colors.red, Colors.green, Colors.blue],
-                          ),
-                        ),
-                        child: const Icon(Icons.add, color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  ...AppColorScheme.values.where((s) => s != AppColorScheme.custom).map((scheme) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: GestureDetector(
-                        onTap: () => widget.onChangeColorScheme(scheme),
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: scheme.color,
-                            shape: BoxShape.circle,
-                            border: widget.colorScheme == scheme
-                                ? Border.all(color: Theme.of(context).colorScheme.onSurface, width: 2)
-                                : null,
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            ),
-            const Divider(),
-          ],
+    return Column(
+      children: [
+        CategoryList(
+          categories: categories,
+          selectedCategory: _selectedCategory,
+          onCategorySelected: _onCategorySelected,
         ),
-      ),
-      body: Column(
-        children: [
-          CategoryList(
-            categories: categories,
-            selectedCategory: _selectedCategory,
-            onCategorySelected: _onCategorySelected,
-          ),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : filteredNotes.isEmpty && _notes.isNotEmpty
-                    ? Center(
-                        child: Text(
-                          'No notes in this category.',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                      )
-                    : _notes.isEmpty
-                        ? const EmptyState()
-                        : _buildNotesList(groupedNotes),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _navigateToEditPage(),
-        tooltip: 'New Note',
-        child: const Icon(Icons.add),
-      ),
+        Expanded(
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : filteredNotes.isEmpty && _notes.isNotEmpty
+                  ? Center(
+                      child: Text(
+                        'No notes in this category.',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    )
+                  : _notes.isEmpty
+                      ? const EmptyState()
+                      : _buildNotesList(groupedNotes),
+        ),
+      ],
     );
   }
 
@@ -361,20 +211,44 @@ class _NoteListPageState extends State<NoteListPage> {
       itemCount: flatList.length,
       itemBuilder: (context, index) {
         final item = flatList[index];
+
         if (item is String) {
-          return GroupHeader(title: item, key: Key('header_$item'));
-        } else if (item is Note) {
-          return NoteCard(
+          if (item == "Pinned") {
+            return GroupHeader(
+                title: item == "Pinned" ? item : "", key: Key('header_$item'));
+          }
+        }
+
+        if (item is Note) {
+          return Dismissible(
             key: Key(item.id),
-            note: item,
-            onTap: () => _navigateToEditPage(note: item),
-            onTogglePin: () => _togglePin(item),
-            onDelete: () => _deleteNote(item),
-            index: index,
-            getFlatListIndex: (note) => _getFlatListIndex(note, flatList),
+            direction: DismissDirection.endToStart,
+            movementDuration: const Duration(milliseconds: 200),
+            background: Container(
+              color: Colors.red,
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: const Icon(Icons.delete, color: Colors.white),
+            ),
+            onDismissed: (direction) {
+              _deleteNote(item);
+            },
+            child: ReorderableDragStartListener(
+              index: _getFlatListIndex(item, flatList),
+              key: Key(item.id),
+              child: NoteCard(
+                key: Key(item.id),
+                note: item,
+                onTap: () => widget.onNavigateToEditPage(note: item),
+                onTogglePin: () => _togglePin(item),
+                index: index,
+                getFlatListIndex: (note) => _getFlatListIndex(note, flatList),
+              ),
+            ),
           );
         }
-        return const SizedBox.shrink();
+
+        return SizedBox(key: ValueKey('empty_$index'));
       },
       onReorder: (oldIndex, newIndex) {
         setState(() {
@@ -417,9 +291,9 @@ class _NoteListPageState extends State<NoteListPage> {
                 originalNote.group = newGroup;
               }
             }
-            
+
             _notes.removeAt(noteIndex);
-            
+
             int newNoteIndex = 0;
             for (int i = 0; i < newIndex; i++) {
               if (flatList[i] is Note) {
