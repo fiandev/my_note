@@ -27,7 +27,8 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final GlobalKey<NoteListPageState> _noteListPageKey = GlobalKey<NoteListPageState>();
+  final GlobalKey<NoteListPageState> _noteListPageKey =
+      GlobalKey<NoteListPageState>();
 
   void _navigateToEditPage({Note? note}) async {
     final result = await Navigator.push(
@@ -70,7 +71,7 @@ class _MainScreenState extends State<MainScreen> {
                   const Align(
                     alignment: Alignment.topLeft,
                     child: Text(
-                      'Settings',
+                      '',
                       style: TextStyle(color: Colors.white, fontSize: 24),
                     ),
                   ),
@@ -177,7 +178,8 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
       ),
-      body: NoteListPage(key: _noteListPageKey, onNavigateToEditPage: _navigateToEditPage), 
+      body: NoteListPage(
+          key: _noteListPageKey, onNavigateToEditPage: _navigateToEditPage),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _navigateToEditPage(),
         tooltip: 'New Note',
