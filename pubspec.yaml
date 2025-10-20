@@ -1,11 +1,21 @@
 name: my_note
 description: "A simple for secure notes"
-publish_to: 'none'
+publish_to: "none"
 
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: ">=3.0.0 <4.0.0"
+
+flutter_native_splash:
+  color: "#111111" # Warna background splash
+  image: assets/logo.png # Logo utama (pastikan file ada)
+  # branding: assets/logo.png # (opsional) logo kecil di bawah
+  android: true
+  ios: true
+  web: true
+  android_gravity: center
+  ios_content_mode: scaleAspectFit
 
 dependencies:
   flutter:
@@ -14,6 +24,7 @@ dependencies:
   intl: ^0.19.0
   cupertino_icons: ^1.0.8
   flutter_colorpicker: ^1.0.3
+  flutter_native_splash: ^2.4.7
 
 dev_dependencies:
   flutter_test:

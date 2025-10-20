@@ -27,8 +27,8 @@ jobs:
       - name: Run tests
         run: flutter test
 
-      - name: Build APKs (split per ABI)
-        run: flutter build apk --release --split-per-abi
+      # - name: Build APKs (split per ABI)
+      #   run: flutter build apk --release --split-per-abi
 
       - name: Build Universal APK
         run: flutter build apk --release
