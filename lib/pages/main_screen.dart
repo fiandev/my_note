@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:my_note/main.dart'; // For AppColorScheme enum
 import 'package:my_note/models/note.dart';
 import 'package:my_note/pages/note_edit_page.dart';
+import 'package:my_note/pages/settings_page.dart';
 import 'note_list_page.dart';
 
 class MainScreen extends StatefulWidget {
@@ -11,6 +11,8 @@ class MainScreen extends StatefulWidget {
   final AppColorScheme colorScheme;
   final void Function(AppColorScheme, [Color? customColor]) onChangeColorScheme;
   final Color? customColor;
+  final bool autoSaveEnabled;
+  final void Function(bool) onAutoSaveChanged;
 
   const MainScreen({
     super.key,
@@ -19,6 +21,8 @@ class MainScreen extends StatefulWidget {
     required this.colorScheme,
     required this.onChangeColorScheme,
     this.customColor,
+    required this.autoSaveEnabled,
+    required this.onAutoSaveChanged,
   });
 
   @override
@@ -33,7 +37,9 @@ class _MainScreenState extends State<MainScreen> {
   void _navigateToEditPage({Note? note}) async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => NoteEditPage(note: note)),
+      MaterialPageRoute(
+          builder: (context) => NoteEditPage(
+              note: note, autoSaveEnabled: widget.autoSaveEnabled)),
     );
 
     if (result != null && result is Note) {
@@ -46,10 +52,26 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: const Text('MyNote'),
-        leading: IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+        automaticallyImplyLeading: false,
+        backgroundColor: Theme.of(context).primaryColor,
+        forceMaterialTransparency: true,
+        titleSpacing: 4, // biar kontrol jarak penuh di Row
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'MyNote',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 8), // jarak antara title dan tombol
+            IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+            ),
+          ],
         ),
       ),
       drawer: Drawer(
@@ -91,89 +113,25 @@ class _MainScreenState extends State<MainScreen> {
                 ],
               ),
             ),
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Text(
-                'Theme Color',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-            ),
-            SizedBox(
-              height: 60,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: GestureDetector(
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text('Pick a color'),
-                              content: SingleChildScrollView(
-                                child: ColorPicker(
-                                  pickerColor: widget.customColor ??
-                                      widget.colorScheme.color,
-                                  onColorChanged: (color) {
-                                    widget.onChangeColorScheme(
-                                        AppColorScheme.custom, color);
-                                  },
-                                ),
-                              ),
-                              actions: <Widget>[
-                                TextButton(
-                                  child: const Text('Done'),
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      },
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: const LinearGradient(
-                            colors: [Colors.red, Colors.green, Colors.blue],
-                          ),
-                        ),
-                        child: const Icon(Icons.add, color: Colors.white),
-                      ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
+              onTap: () {
+                Navigator.pop(context); // Close drawer
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SettingsPage(
+                      onToggleTheme: widget.onToggleTheme,
+                      themeMode: widget.themeMode,
+                      colorScheme: widget.colorScheme,
+                      onChangeColorScheme: widget.onChangeColorScheme,
+                      customColor: widget.customColor,
+                      onAutoSaveChanged: widget.onAutoSaveChanged,
                     ),
                   ),
-                  ...AppColorScheme.values
-                      .where((s) => s != AppColorScheme.custom)
-                      .map((scheme) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: GestureDetector(
-                        onTap: () => widget.onChangeColorScheme(scheme),
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: scheme.color,
-                            shape: BoxShape.circle,
-                            border: widget.colorScheme == scheme
-                                ? Border.all(
-                                    color:
-                                        Theme.of(context).colorScheme.onSurface,
-                                    width: 2)
-                                : null,
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ],
-              ),
+                );
+              },
             ),
           ],
         ),

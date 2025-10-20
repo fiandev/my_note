@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import '../models/note.dart';
 
 class NoteCard extends StatelessWidget {
@@ -20,6 +21,9 @@ class NoteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Pastikan locale 'id_ID' sudah diinisialisasi
+    initializeDateFormatting('id_ID', null);
+
     return ReorderableDragStartListener(
       index: getFlatListIndex(note),
       key: key,
@@ -33,6 +37,7 @@ class NoteCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Baris judul + tombol pin
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -58,20 +63,28 @@ class NoteCard extends StatelessWidget {
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 8),
+
+                // Konten note
                 Text(
                   note.content,
                   style: Theme.of(context).textTheme.bodyMedium,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
+
                 const SizedBox(height: 12),
+
+                // Baris bawah: Group + Tanggal
                 Row(
                   children: [
                     if (note.group != null && note.group!.isNotEmpty)
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: Theme.of(context)
                               .colorScheme
@@ -82,13 +95,17 @@ class NoteCard extends StatelessWidget {
                         child: Text(
                           note.group!,
                           style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontSize: 12),
+                            color: Theme.of(context).colorScheme.primary,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     const Spacer(),
+
+                    // Format tanggal
                     Text(
-                      DateFormat.yMMMd().format(note.createdAt),
+                      DateFormat('EEEE, d MMM yyyy, HH:mm', 'id_ID')
+                          .format(note.createdAt),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],

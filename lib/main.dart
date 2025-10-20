@@ -32,7 +32,14 @@ class _MyAppState extends State<MyApp> {
   ThemeMode _themeMode = ThemeMode.light;
   AppColorScheme _colorScheme = AppColorScheme.blue;
   Color? _customColor;
+  bool _autoSaveEnabled = true;
   late SharedPreferences _prefs;
+
+  void _onAutoSaveChanged(bool enabled) {
+    setState(() {
+      _autoSaveEnabled = enabled;
+    });
+  }
 
   @override
   void initState() {
@@ -43,8 +50,10 @@ class _MyAppState extends State<MyApp> {
   Future<void> _loadSettings() async {
     _prefs = await SharedPreferences.getInstance();
     final themeModeIndex = _prefs.getInt('themeMode') ?? ThemeMode.light.index;
-    final colorSchemeName = _prefs.getString('colorScheme') ?? AppColorScheme.blue.name;
+    final colorSchemeName =
+        _prefs.getString('colorScheme') ?? AppColorScheme.blue.name;
     final customColorValue = _prefs.getInt('customColor');
+    final autoSaveEnabled = _prefs.getBool('autoSaveEnabled') ?? true;
 
     setState(() {
       _themeMode = ThemeMode.values[themeModeIndex];
@@ -55,6 +64,7 @@ class _MyAppState extends State<MyApp> {
       if (_colorScheme == AppColorScheme.custom && customColorValue != null) {
         _customColor = Color(customColorValue);
       }
+      _autoSaveEnabled = autoSaveEnabled;
     });
   }
 
@@ -66,7 +76,8 @@ class _MyAppState extends State<MyApp> {
     await _prefs.setInt('themeMode', _themeMode.index);
   }
 
-  Future<void> _changeColorScheme(AppColorScheme newScheme, [Color? customColor]) async {
+  Future<void> _changeColorScheme(AppColorScheme newScheme,
+      [Color? customColor]) async {
     setState(() {
       _colorScheme = newScheme;
       if (newScheme == AppColorScheme.custom) {
@@ -75,7 +86,7 @@ class _MyAppState extends State<MyApp> {
     });
     await _prefs.setString('colorScheme', _colorScheme.name);
     if (newScheme == AppColorScheme.custom && customColor != null) {
-      await _prefs.setInt('customColor', customColor.value);
+      await _prefs.setInt('customColor', customColor.toARGB32());
     } else {
       await _prefs.remove('customColor');
     }
@@ -83,9 +94,10 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    final seedColor = _colorScheme == AppColorScheme.custom && _customColor != null
-        ? _customColor!
-        : _colorScheme.color;
+    final seedColor =
+        _colorScheme == AppColorScheme.custom && _customColor != null
+            ? _customColor!
+            : _colorScheme.color;
 
     return MaterialApp(
       title: 'MyNote',
@@ -113,6 +125,8 @@ class _MyAppState extends State<MyApp> {
         colorScheme: _colorScheme,
         onChangeColorScheme: _changeColorScheme,
         customColor: _customColor,
+        autoSaveEnabled: _autoSaveEnabled,
+        onAutoSaveChanged: _onAutoSaveChanged,
       ),
     );
   }
