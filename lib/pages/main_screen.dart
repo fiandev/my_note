@@ -54,8 +54,7 @@ class _MainScreenState extends State<MainScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Theme.of(context).primaryColor,
-        forceMaterialTransparency: true,
-        titleSpacing: 4, // biar kontrol jarak penuh di Row
+        titleSpacing: 12, // biar kontrol jarak penuh di Row
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

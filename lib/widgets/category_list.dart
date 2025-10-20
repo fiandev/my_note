@@ -25,7 +25,8 @@ class CategoryList extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 4.0),
             child: ChoiceChip(
               label: Text(category),
-              selected: selectedCategory == category || (category == 'All' && selectedCategory == null),
+              selected: selectedCategory == category ||
+                  (category == 'All' && selectedCategory == null),
               onSelected: (selected) {
                 onCategorySelected(category);
               },

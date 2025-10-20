@@ -33,21 +33,16 @@ android {
 
     buildTypes {
         getByName("release") {
-            // Gunakan debug signing untuk testing
-            signingConfig = signingConfigs.getByName("debug")
-
-            isMinifyEnabled = true
-            isShrinkResources = true
+            signingConfig = signingConfigs.getByName("debug") // tetap untuk testing
+            isMinifyEnabled = false // Temporarily disable for testing
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
-        getByName("debug") {
-            isMinifyEnabled = false
-            isShrinkResources = false
-        }
     }
+
 
     packaging {
         resources {
@@ -66,16 +61,16 @@ flutter {
 }
 
 // Rename output file untuk testing
-afterEvaluate {
-    tasks.matching { it.name.startsWith("package") && it.name.endsWith("Release") }.configureEach {
-        doLast {
-            val outputDir = File("$buildDir/outputs/flutter-apk")
-            outputDir.listFiles()?.forEach { file ->
-                if (file.name.endsWith(".apk")) {
-                    val newName = "com.fiandev.my_note-${file.name}"
-                    file.renameTo(File(outputDir, newName))
-                }
-            }
-        }
-    }
-}
+// afterEvaluate {
+//     tasks.matching { it.name.startsWith("package") && it.name.endsWith("Release") }.configureEach {
+//         doLast {
+//             val outputDir = File("$buildDir/outputs/flutter-apk")
+//             outputDir.listFiles()?.forEach { file ->
+//                 if (file.name.endsWith(".apk")) {
+//                     val newName = "com.fiandev.my_note-${file.name}"
+//                     file.renameTo(File(outputDir, newName))
+//                 }
+//             }
+//         }
+//     }
+// }
