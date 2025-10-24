@@ -3,6 +3,8 @@
 
 ## v1.2.0
 
+- fix(note): support insert image
+- fix(note): improve note edit feature with rich editor support
 - fix(storage): change notes storage to SharedPreferences for better persistence
 - fix(notes): prevent notes from disappearing when switching between public and secret
 - feat(pin): add reset PIN feature in secret notes page
