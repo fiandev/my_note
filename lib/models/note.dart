@@ -4,7 +4,11 @@ class Note {
   String content;
   String? group;
   bool isPinned;
+  bool isSecret;
   DateTime createdAt;
+
+  // Tambahan baru → list path file/gambar
+  List<String> attachments;
 
   Note({
     required this.id,
@@ -13,6 +17,8 @@ class Note {
     this.group,
     this.isPinned = false,
     required this.createdAt,
+    this.isSecret = false,
+    this.attachments = const [],
   });
 
   Map<String, dynamic> toMap() {
@@ -21,8 +27,10 @@ class Note {
       'title': title,
       'content': content,
       'group': group,
+      'isSecret': isSecret,
       'isPinned': isPinned,
       'createdAt': createdAt.toIso8601String(),
+      'attachments': attachments,
     };
   }
 
@@ -32,8 +40,11 @@ class Note {
       title: map['title'],
       content: map['content'],
       group: map['group'],
-      isPinned: map['isPinned'],
+      isPinned: map['isPinned'] ?? false,
       createdAt: DateTime.parse(map['createdAt']),
+      attachments: map['attachments'] != null
+          ? List<String>.from(map['attachments'])
+          : [],
     );
   }
 }

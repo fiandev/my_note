@@ -33,6 +33,34 @@ class _NoteEditPageState extends State<NoteEditPage> {
     super.dispose();
   }
 
+  // void _saveNoteAndPop() {
+  //   if (isHasSaved) return;
+
+  //   final title = _titleController.text.trim();
+  //   final content = _contentController.text.trim();
+  //   final group = _groupController.text.trim();
+
+  //   if (title.isEmpty && content.isEmpty) {
+  //     Navigator.of(context).pop(); // keluar tanpa menyimpan
+  //     return;
+  //   }
+
+  //   final noteToSave = Note(
+  //     id: widget.note?.id ?? DateTime.now().toIso8601String(),
+  //     title: title,
+  //     content: content,
+  //     group: group,
+  //     isPinned: widget.note?.isPinned ?? false,
+  //     createdAt: widget.note?.createdAt ?? DateTime.now(),
+  //   );
+
+  //   isHasSaved = true;
+
+  //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //     if (mounted) Navigator.of(context).pop(noteToSave);
+  //   });
+  // }
+
   void _saveNoteAndPop() {
     if (isHasSaved) return;
 
@@ -51,32 +79,45 @@ class _NoteEditPageState extends State<NoteEditPage> {
       content: content,
       group: group,
       isPinned: widget.note?.isPinned ?? false,
+      isSecret: widget.note?.isSecret ?? false,
       createdAt: widget.note?.createdAt ?? DateTime.now(),
     );
 
     isHasSaved = true;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) Navigator.of(context).pop(noteToSave);
-    });
+    if (mounted) Navigator.of(context).pop(noteToSave);
   }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
+      // onPopInvokedWithResult: (didPop, result) async {
+      //   if (isHasSaved || didPop) return;
+
+      //   final title = _titleController.text.trim();
+      //   final content = _contentController.text.trim();
+
+      //   if (widget.autoSaveEnabled && title.isNotEmpty && content.isNotEmpty) {
+      //     _saveNoteAndPop();
+      //   } else {
+      //     Navigator.of(context).pop();
+      //   }
+      // },
+      onPopInvokedWithResult: (didPop, result) {
         if (isHasSaved || didPop) return;
 
         final title = _titleController.text.trim();
         final content = _contentController.text.trim();
 
-        if (widget.autoSaveEnabled && title.isNotEmpty && content.isNotEmpty) {
+        if (widget.autoSaveEnabled &&
+            (title.isNotEmpty || content.isNotEmpty)) {
           _saveNoteAndPop();
         } else {
           Navigator.of(context).pop();
         }
       },
+
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.note == null ? 'New Note' : 'Edit Note'),
