@@ -61,6 +61,7 @@ class NoteListPageState extends State<NoteListPage> {
 
   Future<void> _saveNotes() async {
     await _noteService.saveNotes(_notes);
+    await loadNotes(); // Reload to sync with storage
   }
 
   void _sortNotes() {
@@ -228,26 +229,33 @@ class NoteListPageState extends State<NoteListPage> {
                   if (item is Note) {
                     return Dismissible(
                       key: Key(item.id),
-                      direction: DismissDirection.endToStart,
-                      background: Container(
-                        color: Colors.red,
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: const Icon(Icons.delete, color: Colors.white),
-                      ),
-                      onDismissed: (direction) => _deleteNote(item),
+                       direction: DismissDirection.horizontal,
+                       background: Container(
+                         color: Colors.red,
+                         alignment: Alignment.centerRight,
+                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                         child: const Icon(Icons.delete, color: Colors.white),
+                       ),
+                       secondaryBackground: Container(
+                         color: Colors.red,
+                         alignment: Alignment.centerLeft,
+                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                         child: const Icon(Icons.delete, color: Colors.white),
+                       ),
+                       onDismissed: (direction) => _deleteNote(item),
                       child: ReorderableDragStartListener(
                         index: _getFlatListIndex(item, flatList),
                         key: Key(item.id),
-                        child: NoteCard(
-                          key: Key(item.id),
-                          note: item,
-                          onTap: () => widget.onNavigateToEditPage(note: item),
-                          onTogglePin: () => _togglePin(item),
-                          index: index,
-                          getFlatListIndex: (note) =>
-                              _getFlatListIndex(note, flatList),
-                        ),
+                         child: NoteCard(
+                           key: Key(item.id),
+                           note: item,
+                           onTap: () => widget.onNavigateToEditPage(note: item),
+                           onTogglePin: () => _togglePin(item),
+                           onDelete: () => _deleteNote(item),
+                           index: index,
+                           getFlatListIndex: (note) =>
+                               _getFlatListIndex(note, flatList),
+                         ),
                       ),
                     );
                   }

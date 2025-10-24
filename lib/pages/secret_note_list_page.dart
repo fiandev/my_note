@@ -48,13 +48,9 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
          _isLoading = false;
        });
      }
-   }
+    }
 
-   Future<void> _saveNotes() async {
-     await _noteService.saveNotes(_notes, pin: widget.pin);
-   }
-
-  void addOrUpdateNoteAndSave(Note note) {
+   void addOrUpdateNoteAndSave(Note note) {
     final secretNote = Note(
       id: note.id,
       title: note.title,
@@ -86,28 +82,35 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
     });
   }
 
-  void _deleteNote(Note note) {
+  void _deleteNote(Note note) async {
     final noteIndex = _notes.indexOf(note);
     setState(() {
       _notes.remove(note);
     });
-    _saveNotes();
+    await _saveNotes();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Note deleted'),
-        action: SnackBarAction(
-          label: 'Undo',
-          onPressed: () {
-            setState(() {
-              _notes.insert(noteIndex, note);
-              _sortNotes();
-            });
-            _saveNotes();
-          },
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Note deleted'),
+          action: SnackBarAction(
+            label: 'Undo',
+            onPressed: () async {
+              setState(() {
+                _notes.insert(noteIndex, note);
+                _sortNotes();
+              });
+              await _saveNotes();
+            },
+          ),
         ),
-      ),
-    );
+      );
+    }
+  }
+
+  Future<void> _saveNotes() async {
+    await _noteService.saveNotes(_notes, pin: widget.pin);
+    await loadNotes(); // Reload to sync with storage
   }
 
   void _togglePin(Note note) {
@@ -284,36 +287,43 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
         if (item is Note) {
           return Dismissible(
             key: Key(item.id),
-            direction: DismissDirection.endToStart,
-            background: Container(
-              color: Colors.red,
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: const Icon(Icons.delete, color: Colors.white),
-            ),
-            onDismissed: (_) => _deleteNote(item),
+             direction: DismissDirection.horizontal,
+             background: Container(
+               color: Colors.red,
+               alignment: Alignment.centerRight,
+               padding: const EdgeInsets.symmetric(horizontal: 20.0),
+               child: const Icon(Icons.delete, color: Colors.white),
+             ),
+             secondaryBackground: Container(
+               color: Colors.red,
+               alignment: Alignment.centerLeft,
+               padding: const EdgeInsets.symmetric(horizontal: 20.0),
+               child: const Icon(Icons.delete, color: Colors.white),
+             ),
+             onDismissed: (_) => _deleteNote(item),
             child: ReorderableDragStartListener(
               index: index,
               key: Key(item.id),
-              child: NoteCard(
-                note: item,
-                index: index,
-                onTap: () async {
-                  final updated = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          NoteEditPage(note: item, autoSaveEnabled: true),
-                    ),
-                  );
+               child: NoteCard(
+                 note: item,
+                 index: index,
+                 onTap: () async {
+                   final updated = await Navigator.push(
+                     context,
+                     MaterialPageRoute(
+                       builder: (_) =>
+                           NoteEditPage(note: item, autoSaveEnabled: true),
+                     ),
+                   );
 
-                  if (updated is Note) {
-                    addOrUpdateNoteAndSave(updated);
-                  }
-                },
-                onTogglePin: () => _togglePin(item),
-                getFlatListIndex: (note) => _notes.indexOf(note),
-              ),
+                   if (updated is Note) {
+                     addOrUpdateNoteAndSave(updated);
+                   }
+                 },
+                 onTogglePin: () => _togglePin(item),
+                 onDelete: () => _deleteNote(item),
+                 getFlatListIndex: (note) => _notes.indexOf(note),
+               ),
             ),
           );
         }

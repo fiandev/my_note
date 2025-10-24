@@ -7,6 +7,7 @@ class NoteCard extends StatelessWidget {
   final Note note;
   final VoidCallback onTap;
   final VoidCallback onTogglePin;
+  final VoidCallback onDelete;
   final int index;
   final int Function(Note) getFlatListIndex;
 
@@ -15,6 +16,7 @@ class NoteCard extends StatelessWidget {
     required this.note,
     required this.onTap,
     required this.onTogglePin,
+    required this.onDelete,
     required this.index,
     required this.getFlatListIndex,
   });
@@ -32,37 +34,59 @@ class NoteCard extends StatelessWidget {
         elevation: 2,
         child: InkWell(
           onTap: onTap,
-          child: Padding(
+          onLongPress: () async {
+            final confirmed = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Delete Note'),
+                content: Text('Are you sure you want to delete "${note.title}"?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: const Text('Delete'),
+                  ),
+                ],
+              ),
+            );
+            if (confirmed == true) {
+              onDelete();
+            }
+          },
+            child: Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Baris judul + tombol pin
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        note.title,
-                        style: Theme.of(context).textTheme.titleLarge,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        note.isPinned
-                            ? Icons.push_pin
-                            : Icons.push_pin_outlined,
-                        color: note.isPinned
-                            ? Theme.of(context).colorScheme.primary
-                            : null,
-                      ),
-                      onPressed: onTogglePin,
-                      tooltip: note.isPinned ? 'Unpin Note' : 'Pin Note',
-                    ),
-                  ],
-                ),
+                 // Baris judul + tombol pin
+                 Row(
+                   crossAxisAlignment: CrossAxisAlignment.start,
+                   children: [
+                     Expanded(
+                       child: Text(
+                         note.title,
+                         style: Theme.of(context).textTheme.titleLarge,
+                         maxLines: 1,
+                         overflow: TextOverflow.ellipsis,
+                       ),
+                     ),
+                     IconButton(
+                       icon: Icon(
+                         note.isPinned
+                             ? Icons.push_pin
+                             : Icons.push_pin_outlined,
+                         color: note.isPinned
+                             ? Theme.of(context).colorScheme.primary
+                             : null,
+                       ),
+                       onPressed: onTogglePin,
+                       tooltip: note.isPinned ? 'Unpin Note' : 'Pin Note',
+                     ),
+                   ],
+                 ),
 
                 const SizedBox(height: 8),
 

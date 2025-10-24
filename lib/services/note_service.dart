@@ -55,13 +55,21 @@ class NoteService {
       }
     }
 
-    // Encrypt secret notes
+    // Remove notes that are not in the current list (for delete)
+    if (pin != null && pin.isNotEmpty) {
+      // Saving secret notes, remove secret notes not in list
+      allNotes.removeWhere((note) =>
+          note.isSecret && !notes.any((n) => n.id == note.id));
+    } else {
+      // Saving public notes, remove public notes not in list
+      allNotes.removeWhere((note) =>
+          !note.isSecret && !notes.any((n) => n.id == note.id));
+    }
+
+    // Encrypt secret notes if PIN is provided
     final List<Map<String, dynamic>> notesJson = allNotes.map((note) {
       final noteMap = note.toMap();
-      if (note.isSecret) {
-        if (pin == null || pin.isEmpty) {
-          throw Exception('PIN is required to save secret note');
-        }
+      if (note.isSecret && pin != null && pin.isNotEmpty) {
         noteMap['content'] = _crypto.encrypt(note.content, pin, note.id);
       }
       return noteMap;
