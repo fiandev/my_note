@@ -41,6 +41,7 @@ class Note {
       content: map['content'],
       group: map['group'],
       isPinned: map['isPinned'] ?? false,
+      isSecret: map['isSecret'] ?? false,
       createdAt: DateTime.parse(map['createdAt']),
       attachments: map['attachments'] != null
           ? List<String>.from(map['attachments'])

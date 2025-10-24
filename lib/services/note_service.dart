@@ -7,11 +7,10 @@ class NoteService {
   static const _notesKey = 'notes';
   final _crypto = CryptoHelper();
 
-  Future<List<Note>> loadNotes() async {
+  Future<List<Note>> loadAllNotes() async {
     final prefs = await SharedPreferences.getInstance();
     final notesData = prefs.getString(_notesKey);
 
-    print(notesData);
     if (notesData != null) {
       final List<dynamic> notesJson = json.decode(notesData);
       return notesJson.map((json) => Note.fromMap(json)).toList();
@@ -19,11 +18,14 @@ class NoteService {
     return [];
   }
 
-  /// Mengembalikan semua notes, tapi jika `isSecret == true`,
-  /// maka `content` akan didekripsi menggunakan PIN.
+  Future<List<Note>> loadNotes() async {
+    final notes = await loadAllNotes();
+    return notes.where((note) => !note.isSecret).toList();
+  }
+
   Future<List<Note>> getSecretNotes(String pin) async {
-    final notes = await loadNotes();
-    return notes.map((note) {
+    final notes = await loadAllNotes();
+    return notes.where((note) => note.isSecret).map((note) {
       try {
         note.content = _crypto.decrypt(note.content, pin, note.id);
       } catch (_) {
