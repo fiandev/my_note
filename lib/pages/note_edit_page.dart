@@ -68,6 +68,13 @@ class _NoteEditPageState extends State<NoteEditPage> {
     final content = _contentController.text.trim();
     final group = _groupController.text.trim();
 
+    if (title.isEmpty || content.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Title and content cannot be empty')),
+      );
+      return;
+    }
+
     if (title.isEmpty && content.isEmpty) {
       Navigator.of(context).pop(); // keluar tanpa menyimpan
       return;
