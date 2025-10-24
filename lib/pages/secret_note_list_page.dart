@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:my_note/pages/note_edit_page.dart';
+import 'package:my_note/pages/pin_setup_page.dart';
 import 'package:my_note/widgets/category_list.dart';
 import '../models/note.dart';
 import '../services/note_service.dart';
+import '../services/pin_service.dart';
 import '../widgets/note_card.dart';
 import '../widgets/group_header.dart';
 import '../widgets/empty_state.dart';
@@ -22,10 +24,10 @@ class SecretNoteListPage extends StatefulWidget {
 class _SecretNoteListPageState extends State<SecretNoteListPage> {
   final List<Note> _notes = [];
   final NoteService _noteService = NoteService();
+  final PinService _pinService = PinService();
 
   bool _isLoading = true;
   String? _selectedCategory;
-  double _dragHeight = 20;
   static const int maxPins = 5;
 
   @override
@@ -34,24 +36,23 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
     loadNotes();
   }
 
-  Future<void> loadNotes() async {
-    final loadedNotes = await _noteService.getSecretNotes(widget.pin);
+   Future<void> loadNotes() async {
+     final loadedNotes = await _noteService.getSecretNotes(widget.pin);
 
-    print(('Loaded notes', loadedNotes));
-    if (mounted) {
-      setState(() {
-        _notes
-          ..clear()
-          ..addAll(loadedNotes);
-        _sortNotes();
-        _isLoading = false;
-      });
-    }
-  }
+     if (mounted) {
+       setState(() {
+         _notes
+           ..clear()
+           ..addAll(loadedNotes);
+         _sortNotes();
+         _isLoading = false;
+       });
+     }
+   }
 
-  Future<void> _saveNotes() async {
-    await _noteService.saveNotes(_notes, pin: widget.pin);
-  }
+   Future<void> _saveNotes() async {
+     await _noteService.saveNotes(_notes, pin: widget.pin);
+   }
 
   void addOrUpdateNoteAndSave(Note note) {
     final secretNote = Note(
@@ -178,6 +179,37 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
     });
   }
 
+  Future<void> _resetPin() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reset PIN'),
+        content: const Text('This will delete your current PIN. You will need to set a new one to access secret notes. Continue?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await _pinService.resetPin();
+      if (mounted) {
+        Navigator.of(context).pop(); // Go back to main screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => PinSetupPage()),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final categories = _getUniqueCategories();
@@ -185,7 +217,6 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
         ? _notes
         : _notes.where((note) => note.group == _selectedCategory).toList();
     final groupedNotes = _getGroupedNotes(filteredNotes);
-    double maxHeight = MediaQuery.of(context).size.height * 0.8;
 
     return PopScope(
       canPop: false,
@@ -193,7 +224,16 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
         if (!didPop) Navigator.of(context).pop();
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('Secret Notes')),
+        appBar: AppBar(
+          title: const Text('Secret Notes'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.lock_reset),
+              onPressed: _resetPin,
+              tooltip: 'Reset PIN',
+            ),
+          ],
+        ),
         body: Column(
           children: [
             CategoryList(
@@ -207,48 +247,6 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
                   : _notes.isEmpty
                       ? const EmptyState()
                       : _buildNotesList(groupedNotes),
-            ),
-            GestureDetector(
-              onVerticalDragUpdate: (details) {
-                setState(() {
-                  _dragHeight += details.delta.dy;
-                  if (_dragHeight < 0) _dragHeight = 1;
-                  if (_dragHeight > maxHeight) _dragHeight = maxHeight;
-                });
-              },
-              onVerticalDragEnd: (_) async {
-                if (_dragHeight > maxHeight * 0.5) {
-                  if (mounted) Navigator.of(context).pop();
-                }
-                if (mounted) setState(() => _dragHeight = 10);
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 100),
-                width: MediaQuery.of(context).size.width,
-                height: _dragHeight,
-                color: _dragHeight > 10
-                    ? Theme.of(context).focusColor
-                    : Theme.of(context).hintColor,
-                alignment: Alignment.center,
-                child: _dragHeight / maxHeight > 0.1
-                    ? Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            _dragHeight / maxHeight > 0.5
-                                ? Icons.lock_open
-                                : Icons.lock,
-                            size: 24,
-                          ),
-                          Text(
-                            _dragHeight / maxHeight > 0.5
-                                ? "Close Secret Notes"
-                                : "Secret Notes",
-                          ),
-                        ],
-                      )
-                    : const SizedBox(),
-              ),
             ),
           ],
         ),

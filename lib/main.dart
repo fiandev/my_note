@@ -97,7 +97,7 @@ class _MyAppState extends State<MyApp> {
     });
     await _prefs?.setString('colorScheme', _colorScheme.name);
     if (newScheme == AppColorScheme.custom && customColor != null) {
-      await _prefs?.setInt('customColor', customColor.value);
+      await _prefs?.setInt('customColor', customColor.toARGB32());
     } else {
       await _prefs?.remove('customColor');
     }

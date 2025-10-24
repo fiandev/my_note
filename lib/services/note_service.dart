@@ -10,10 +10,16 @@ class NoteService {
   Future<List<Note>> loadAllNotes() async {
     final prefs = await SharedPreferences.getInstance();
     final notesData = prefs.getString(_notesKey);
-
     if (notesData != null) {
-      final List<dynamic> notesJson = json.decode(notesData);
-      return notesJson.map((json) => Note.fromMap(json)).toList();
+      try {
+        final List<dynamic> jsonList = json.decode(notesData);
+        return jsonList
+            .map((json) => Note.fromMap(json.cast<String, dynamic>()))
+            .toList();
+      } catch (e) {
+        // If parsing fails, return empty list
+        return [];
+      }
     }
     return [];
   }
@@ -29,30 +35,40 @@ class NoteService {
       try {
         note.content = _crypto.decrypt(note.content, pin, note.id);
       } catch (_) {
-        // Jika PIN salah, konten tidak bisa didekripsi
         note.content = '[Encrypted] Wrong PIN or Corrupted data';
       }
       return note;
     }).toList();
   }
 
-  /// Simpan semua notes — otomatis encrypt konten untuk note yang isSecret == true
   Future<void> saveNotes(List<Note> notes, {String? pin}) async {
-    final prefs = await SharedPreferences.getInstance();
-    final List<Map<String, dynamic>> notesJson = notes.map((note) {
-      final noteMap = note.toMap();
+    // Load all existing notes
+    final allNotes = await loadAllNotes();
 
+    // Update or add notes
+    for (var note in notes) {
+      final index = allNotes.indexWhere((n) => n.id == note.id);
+      if (index != -1) {
+        allNotes[index] = note;
+      } else {
+        allNotes.add(note);
+      }
+    }
+
+    // Encrypt secret notes
+    final List<Map<String, dynamic>> notesJson = allNotes.map((note) {
+      final noteMap = note.toMap();
       if (note.isSecret) {
         if (pin == null || pin.isEmpty) {
           throw Exception('PIN is required to save secret note');
         }
-        noteMap['content'] =
-            _crypto.encrypt(note.content, pin, note.id); // encrypt content
+        noteMap['content'] = _crypto.encrypt(note.content, pin, note.id);
       }
-
       return noteMap;
     }).toList();
 
-    await prefs.setString(_notesKey, json.encode(notesJson));
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = json.encode(notesJson);
+    await prefs.setString(_notesKey, jsonString);
   }
 }

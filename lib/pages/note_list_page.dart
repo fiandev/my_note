@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:my_note/pages/pin_login.dart';
-import 'package:my_note/pages/pin_setup_page.dart';
 import 'package:my_note/widgets/category_list.dart';
 import '../models/note.dart';
 import '../services/note_service.dart';
@@ -29,12 +27,10 @@ class NoteListPageState extends State<NoteListPage> {
 
   bool _isLoading = true;
   String? _selectedCategory;
-  double _dragHeight = 20; // track tinggi drag
 
   @override
   void initState() {
     super.initState();
-    _dragHeight = 20;
     loadNotes();
   }
 
@@ -213,73 +209,10 @@ class NoteListPageState extends State<NoteListPage> {
       flatList.addAll(value);
     });
 
-    double maxHeight = MediaQuery.of(context).size.height * 0.8; // 80% layar
-
     return StatefulBuilder(
       builder: (context, setState) {
         return Column(
           children: [
-            GestureDetector(
-              onVerticalDragUpdate: (details) {
-                setState(() {
-                  _dragHeight += details.delta.dy;
-                  if (_dragHeight < 0) _dragHeight = 1;
-                  if (_dragHeight > maxHeight) _dragHeight = maxHeight;
-                });
-              },
-              onVerticalDragEnd: (details) async {
-                if (_dragHeight > maxHeight * 0.5) {
-                  // drag lebih dari 50% → pindah halaman
-                  final hasPin = await pinService.hasPin();
-
-                  // Store context in a local variable before async gap
-                  final currentContext = context;
-
-                  if (!mounted) return;
-
-                  // Use the stored context
-                  if (currentContext.mounted) {
-                    Navigator.of(currentContext).push(
-                      MaterialPageRoute(
-                          builder: (_) =>
-                              hasPin ? PinLoginPage() : PinSetupPage()),
-                    );
-                  }
-                }
-
-                if (mounted) {
-                  setState(() {
-                    _dragHeight = 10;
-                  });
-                }
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 100),
-                width: MediaQuery.of(context).size.width,
-                height: _dragHeight,
-                color: _dragHeight > 10
-                    ? Theme.of(context).focusColor
-                    : Theme.of(context).hintColor,
-                alignment: Alignment.center,
-                child: _dragHeight / maxHeight > 0.1
-                    ? Flex(
-                        direction: Axis.vertical,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            _dragHeight / maxHeight > 0.5
-                                ? Icons.lock_open
-                                : Icons.lock,
-                            size: 24,
-                          ),
-                          Text(_dragHeight / maxHeight > 0.5
-                              ? "Open Secret Note"
-                              : "Secret Note"), // ini masih boleh const karena string tetap
-                        ],
-                      )
-                    : const SizedBox(),
-              ),
-            ),
             Expanded(
               child: ReorderableListView.builder(
                 padding: const EdgeInsets.all(8.0),

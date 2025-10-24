@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:my_note/pages/note_edit_page.dart';
 import 'package:my_note/pages/secret_note_list_page.dart';
 import '../services/pin_service.dart';
 import '../widgets/pin_input.dart';

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class Note {
   String id;
   String title;
@@ -35,6 +37,14 @@ class Note {
   }
 
   factory Note.fromMap(Map<String, dynamic> map) {
+    List<String> attachments = [];
+    if (map['attachments'] != null) {
+      if (map['attachments'] is String) {
+        attachments = List<String>.from(json.decode(map['attachments']));
+      } else if (map['attachments'] is List) {
+        attachments = List<String>.from(map['attachments']);
+      }
+    }
     return Note(
       id: map['id'],
       title: map['title'],
@@ -43,9 +53,7 @@ class Note {
       isPinned: map['isPinned'] ?? false,
       isSecret: map['isSecret'] ?? false,
       createdAt: DateTime.parse(map['createdAt']),
-      attachments: map['attachments'] != null
-          ? List<String>.from(map['attachments'])
-          : [],
+      attachments: attachments,
     );
   }
 }

@@ -1,9 +1,13 @@
-import 'package:flutter/material.dart';
-import 'package:my_note/main.dart'; // For AppColorScheme enum
-import 'package:my_note/models/note.dart';
-import 'package:my_note/pages/note_edit_page.dart';
-import 'package:my_note/pages/settings_page.dart';
-import 'note_list_page.dart';
+ import 'package:flutter/material.dart';
+ import 'package:my_note/main.dart'; // For AppColorScheme enum
+ import 'package:my_note/models/note.dart';
+ import 'package:my_note/pages/note_edit_page.dart';
+ import 'package:my_note/pages/settings_page.dart';
+ import 'package:my_note/pages/pin_login.dart';
+ import 'package:my_note/pages/pin_setup_page.dart';
+ import 'package:my_note/pages/secret_note_list_page.dart';
+ import 'package:my_note/services/pin_service.dart';
+ import 'note_list_page.dart';
 
 class MainScreen extends StatefulWidget {
   final VoidCallback onToggleTheme;
@@ -30,22 +34,44 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final GlobalKey<NoteListPageState> _noteListPageKey =
-      GlobalKey<NoteListPageState>();
+   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+   final GlobalKey<NoteListPageState> _noteListPageKey =
+       GlobalKey<NoteListPageState>();
+   final PinService _pinService = PinService();
 
-  void _navigateToEditPage({Note? note}) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (context) => NoteEditPage(
-              note: note, autoSaveEnabled: widget.autoSaveEnabled)),
-    );
+   void _navigateToEditPage({Note? note}) async {
+     final result = await Navigator.push(
+       context,
+       MaterialPageRoute(
+           builder: (context) => NoteEditPage(
+               note: note, autoSaveEnabled: widget.autoSaveEnabled)),
+     );
 
-    if (result != null && result is Note) {
-      _noteListPageKey.currentState?.addOrUpdateNoteAndSave(result);
-    }
-  }
+     if (result != null && result is Note) {
+       _noteListPageKey.currentState?.addOrUpdateNoteAndSave(result);
+     }
+   }
+
+   void _navigateToSecretNotes() async {
+     final hasPin = await _pinService.hasPin();
+     if (!mounted) return;
+
+     final nextPage = hasPin ? PinLoginPage() : PinSetupPage();
+
+     final pinResult = await Navigator.push(
+       context,
+       MaterialPageRoute(builder: (context) => nextPage),
+     );
+
+     if (pinResult is String && mounted) {
+       Navigator.push(
+         context,
+         MaterialPageRoute(
+           builder: (context) => SecretNoteListPage(pin: pinResult),
+         ),
+       );
+     }
+   }
 
   @override
   Widget build(BuildContext context) {
@@ -55,23 +81,32 @@ class _MainScreenState extends State<MainScreen> {
         automaticallyImplyLeading: false,
         backgroundColor: Theme.of(context).primaryColor,
         titleSpacing: 12, // biar kontrol jarak penuh di Row
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'MyNote',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(width: 8), // jarak antara title dan tombol
-            IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-            ),
-          ],
-        ),
+         title: Row(
+           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+           children: [
+             const Text(
+               'MyNote',
+               style: TextStyle(
+                 fontWeight: FontWeight.bold,
+                 color: Colors.white,
+               ),
+             ),
+             const SizedBox(width: 8), // jarak antara title dan tombol
+             Row(
+               children: [
+                 IconButton(
+                   icon: const Icon(Icons.lock_outline),
+                   onPressed: _navigateToSecretNotes,
+                   tooltip: 'Secret Notes',
+                 ),
+                 IconButton(
+                   icon: const Icon(Icons.menu),
+                   onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+                 ),
+               ],
+             ),
+           ],
+         ),
       ),
       drawer: Drawer(
         child: ListView(
