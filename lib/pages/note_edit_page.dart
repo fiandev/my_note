@@ -192,6 +192,7 @@ class _NoteEditPageState extends State<NoteEditPage> {
                     textCapitalization: TextCapitalization.words,
                   ),
                   const Divider(height: 8),
+                  const Padding(padding: EdgeInsets.all(24)),
                   Container(
                     constraints: const BoxConstraints(minHeight: 200),
                     child: QuillEditor.basic(

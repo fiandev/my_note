@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import '../models/note.dart';
@@ -90,13 +92,21 @@ class NoteCard extends StatelessWidget {
 
                 const SizedBox(height: 8),
 
-                // Konten note
-                Text(
-                  note.content,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                 // Konten note
+                 Text(
+                   (() {
+                     try {
+                       final json = jsonDecode(note.content);
+                       final doc = Document.fromJson(json);
+                       return doc.toPlainText().trim();
+                     } catch (e) {
+                       return note.content;
+                     }
+                   })(),
+                   style: Theme.of(context).textTheme.bodyMedium,
+                   maxLines: 3,
+                   overflow: TextOverflow.ellipsis,
+                 ),
 
                 const SizedBox(height: 12),
 
