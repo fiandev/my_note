@@ -1,6 +1,8 @@
 // lib/main.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'pages/main_screen.dart'; // pastikan path ini sesuai
@@ -133,9 +135,16 @@ class _MyAppState extends State<MyApp> {
         ),
         useMaterial3: true,
       ),
-      themeMode: _themeMode,
+       themeMode: _themeMode,
+       localizationsDelegates: const [
+         GlobalMaterialLocalizations.delegate,
+         GlobalCupertinoLocalizations.delegate,
+         GlobalWidgetsLocalizations.delegate,
+         FlutterQuillLocalizations.delegate,
+       ],
+       supportedLocales: const [Locale('id', 'ID')],
 
-      // Home: tampilkan SplashPage sampai _initialized == true, lalu MainScreen
+       // Home: tampilkan SplashPage sampai _initialized == true, lalu MainScreen
       home: SplashPage(
         initialized: _initialized,
         onFinishInitialization: () {

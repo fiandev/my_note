@@ -6,6 +6,9 @@
 - fix(storage): change notes storage to SharedPreferences for better persistence
 - fix(notes): prevent notes from disappearing when switching between public and secret
 - feat(pin): add reset PIN feature in secret notes page
+- fix(delete): improve delete functionality with long press and horizontal swipe
+- feat(validation): add validation for note title and content to prevent empty saves
+- fix(crud): ensure public and secret notes can be updated and deleted correctly
 
 ## v1.1.0
 
