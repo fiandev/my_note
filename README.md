@@ -5,7 +5,9 @@
 
 # MyNote 📝
 
-A simple and secure note-taking app built with Flutter. Keep your thoughts organized, protected, and accessible across all your devices.
+<img width="1920" height="1080" alt="MyNote Preview" src="https://github.com/user-attachments/assets/e4e81767-ac07-4f31-bb52-2d6c6231fd46" />
+
+####  A simple and secure note-taking app built with Flutter. Keep your thoughts organized, protected, and accessible across all your devices.
 
 ## ✨ Features
 
@@ -50,10 +52,6 @@ A simple and secure note-taking app built with Flutter. Keep your thoughts organ
 - **iOS**: `flutter build ios`
 - **Web**: `flutter build web`
 - **Desktop**: `flutter build linux`, `flutter build macos`, `flutter build windows`
-
-## 📱 Screenshots
-
-*(Add your screenshots here)*
 
 ## 🔧 Usage
 
