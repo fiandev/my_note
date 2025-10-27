@@ -63,8 +63,9 @@ class _PinInputWidgetState extends State<PinInputWidget> {
               height: 20,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color:
-                    i < enteredPin.length ? Colors.blue : Colors.grey.shade300,
+                color: i < enteredPin.length
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.grey.shade300,
               ),
             );
           }),

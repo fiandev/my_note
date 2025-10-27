@@ -1,8 +1,8 @@
- import 'package:flutter/material.dart';
- import 'package:my_note/pages/secret_note_list_page.dart';
- import '../services/pin_service.dart';
- import '../widgets/pin_input.dart';
- import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:my_note/pages/secret_note_list_page.dart';
+import '../services/pin_service.dart';
+import '../widgets/pin_input.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class PinLoginPage extends StatefulWidget {
   const PinLoginPage({super.key});
@@ -41,7 +41,7 @@ class _PinLoginPageState extends State<PinLoginPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-             Text('enter_pin_continue'.tr()),
+            Text('enter_pin_continue'.tr()),
             const SizedBox(height: 4),
             if (_error != null)
               Column(
