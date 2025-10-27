@@ -1,7 +1,6 @@
-![Flutter](https://img.shields.io/badge/Flutter-3.0+-blue.svg)
-![Version](https://img.shields.io/badge/version-1.2.0-green.svg)
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-
+![Flutter](https://img.shields.io/badge/Flutter-3.35.7-blue.svg)
+![Version](https://img.shields.io/badge/dynamic/yaml?url=https://raw.githubusercontent.com/fiandev/my_note/master/pubspec.yaml&query=$.version&label=version&color=green)
+![License](https://img.shields.io/github/license/fiandev/my_note)
 
 # MyNote 📝
 
