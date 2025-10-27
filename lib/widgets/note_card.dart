@@ -67,17 +67,18 @@ class NoteCard extends StatelessWidget {
             children: [
               // Baris judul + tombol pin
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                    if (isSelectionMode)
-                       Checkbox(
-                         value: isSelected,
-                         onChanged: (value) {
-                           if (value != null) {
-                             onToggleSelection();
-                           }
-                         },
-                       ),
+                  if (isSelectionMode)
+                    Checkbox(
+                      value: isSelected,
+                      onChanged: (value) {
+                        if (value != null) {
+                          onToggleSelection();
+                        }
+                      },
+                    ),
                   Expanded(
                     child: Text(
                       note.title,

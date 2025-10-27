@@ -262,11 +262,12 @@ class NoteListPageState extends State<NoteListPage> {
                         onTap: () => widget.onNavigateToEditPage(note: item),
                         onTogglePin: () => _togglePin(item),
                         onDelete: () => _deleteNote(item),
-                         onShare: () => widget.onShareNote([item]),
-                         index: index,
-                         isSelectionMode: widget.isSelectionMode,
-                         isSelected: widget.selectedNotes.contains(item),
-                         onToggleSelection: () => widget.onToggleSelection?.call(item),
+                        onShare: () => widget.onShareNote([item]),
+                        index: index,
+                        isSelectionMode: widget.isSelectionMode,
+                        isSelected: widget.selectedNotes.contains(item),
+                        onToggleSelection: () =>
+                            widget.onToggleSelection?.call(item),
                       ),
                     );
                   }

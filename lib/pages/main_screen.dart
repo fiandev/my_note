@@ -136,14 +136,22 @@ class _MainScreenState extends State<MainScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(title),
         content: SizedBox(
           width: 200,
-          height: 200,
-          child: QrImageView(
-            data: networkData,
-            version: QrVersions.auto,
-            size: 200.0,
+          height: 250,
+          child: Flex(
+            direction: Axis.vertical,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(title,
+                  style: TextStyle(fontSize: 15), textAlign: TextAlign.center),
+              QrImageView(
+                data: networkData,
+                version: QrVersions.auto,
+                size: 200.0,
+              )
+            ],
           ),
         ),
         actions: [
@@ -411,6 +419,17 @@ class _MainScreenState extends State<MainScreen> {
                       });
                     },
                     tooltip: 'Share Selected',
+                  ),
+                if (_isSelectionMode)
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () {
+                      setState(() {
+                        _isSelectionMode = false;
+                        _selectedNotes.clear();
+                      });
+                    },
+                    tooltip: 'Cancel Selection',
                   ),
                 IconButton(
                   icon: const Icon(Icons.menu),

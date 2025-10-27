@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
- import 'package:my_note/pages/note_edit_page.dart';
- import 'package:my_note/pages/pin_setup_page.dart';
- import 'package:my_note/pages/pin_input_page.dart';
+import 'package:my_note/pages/note_edit_page.dart';
+import 'package:my_note/pages/pin_setup_page.dart';
+import 'package:my_note/pages/pin_input_page.dart';
 import 'package:my_note/widgets/category_list.dart';
 import '../models/note.dart';
 import '../services/note_service.dart';
 import '../services/pin_service.dart';
 import '../utils/crypto_helper.dart';
- import '../widgets/note_card.dart';
- import '../widgets/group_header.dart';
- import '../widgets/empty_state.dart';
+import '../widgets/note_card.dart';
+import '../widgets/group_header.dart';
+import '../widgets/empty_state.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -216,7 +216,7 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
   }
 
   void _shareSelectedNotes() async {
-    if (_selectedNotes.isEmpty) return;
+    if (_selectedNotes.isEmpty && _isSelectionMode) return;
 
     final isBulk = _selectedNotes.length > 1;
     final title = isBulk
@@ -282,14 +282,22 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(title),
         content: SizedBox(
           width: 200,
-          height: 200,
-          child: QrImageView(
-            data: networkData,
-            version: QrVersions.auto,
-            size: 200.0,
+          height: 250,
+          child: Flex(
+            direction: Axis.vertical,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(title,
+                  style: TextStyle(fontSize: 15), textAlign: TextAlign.center),
+              QrImageView(
+                data: networkData,
+                version: QrVersions.auto,
+                size: 200.0,
+              )
+            ],
           ),
         ),
         actions: [
@@ -305,6 +313,105 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
     );
 
     _clearSelection();
+  }
+
+  void _shareNote(List<Note> notes) async {
+    if (notes.isEmpty) return;
+
+    // Ambil snapshot agar tidak hilang saat async
+    final selectedNotes = List<Note>.from(notes);
+
+    final isBulk = selectedNotes.length > 1;
+    final title = isBulk
+        ? 'Share ${selectedNotes.length} Notes'
+        : 'Share Note: ${selectedNotes.first.title}';
+
+    // Load all notes including secret
+    final allNotes = await _noteService.loadAllNotes();
+
+    // Map untuk lookup
+    final allMap = {for (var n in allNotes) n.id: n};
+    final shareNotes = selectedNotes.map((n) => allMap[n.id] ?? n).toList();
+
+    print(
+        'All notes: ${allNotes.length}, Selected: ${selectedNotes.length}, Share: ${shareNotes.length}');
+
+    // Get local IP
+    final interfaces = await NetworkInterface.list();
+    String ip;
+    try {
+      ip = interfaces
+          .firstWhere(
+            (iface) =>
+                iface.name.contains('wlan') ||
+                iface.name.contains('eth') ||
+                iface.name.contains('Wi-Fi') ||
+                iface.name.contains('Ethernet'),
+            orElse: () =>
+                interfaces.firstWhere((iface) => iface.addresses.isNotEmpty),
+          )
+          .addresses
+          .first
+          .address;
+    } catch (e) {
+      ip = '127.0.0.1'; // Fallback to localhost
+    }
+
+    // Start HTTP server
+    final handler = shelf.Pipeline().addHandler((shelf.Request request) {
+      print('Request path: ${request.url.path}');
+      if (request.url.path == '/notes' || request.url.path == 'notes') {
+        print('Sharing ${shareNotes.length} notes');
+        final notesData = jsonEncode(shareNotes.map((n) => n.toMap()).toList());
+        return shelf.Response.ok(notesData,
+            headers: {'Content-Type': 'application/json'});
+      }
+      return shelf.Response.notFound('Not found');
+    });
+
+    HttpServer server;
+    try {
+      server = await io.serve(handler, ip, 8080);
+    } catch (e) {
+      server = await io.serve(handler, ip, 0);
+    }
+    print('Server running on http://${server.address.host}:${server.port}');
+
+    final networkData =
+        jsonEncode({'ip': server.address.host, 'port': server.port});
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        // title: ,
+        content: SizedBox(
+          width: 200,
+          height: 250,
+          child: Flex(
+            direction: Axis.vertical,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(title,
+                  style: TextStyle(fontSize: 15), textAlign: TextAlign.center),
+              QrImageView(
+                data: networkData,
+                version: QrVersions.auto,
+                size: 200.0,
+              )
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              server.close();
+              Navigator.of(context).pop();
+            },
+            child: Text('Close'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _resetPin() async {
@@ -673,7 +780,7 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
                     },
               onTogglePin: () => _togglePin(item),
               onDelete: () => _deleteNote(item),
-              onShare: () => _shareSelectedNotes(),
+              onShare: () => _shareNote([item]),
               isSelectionMode: _isSelectionMode,
               isSelected: _selectedNotes.contains(item),
               onToggleSelection: () => _toggleSelection(item),
