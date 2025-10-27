@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:my_note/main.dart';
 
-
 class SettingsPage extends StatefulWidget {
   final VoidCallback onToggleTheme;
   final ThemeMode themeMode;
@@ -68,66 +67,66 @@ class _SettingsPageState extends State<SettingsPage> {
     });
   }
 
-   @override
-   Widget build(BuildContext context) {
-     final languageItems = [
-       DropdownMenuItem(
-         value: const Locale('en'),
-         child: Text('english'.tr()),
-       ),
-       DropdownMenuItem(
-         value: const Locale('id'),
-         child: Text('indonesian'.tr()),
-       ),
-       DropdownMenuItem(
-         value: const Locale('ja'),
-         child: Text('japanese'.tr()),
-       ),
-       DropdownMenuItem(
-         value: const Locale('ko'),
-         child: Text('korean'.tr()),
-       ),
-       DropdownMenuItem(
-         value: const Locale('zh'),
-         child: Text('mandarin'.tr()),
-       ),
-     ];
+  @override
+  Widget build(BuildContext context) {
+    final languageItems = [
+      DropdownMenuItem(
+        value: const Locale('en'),
+        child: Text('english'.tr()),
+      ),
+      DropdownMenuItem(
+        value: const Locale('id'),
+        child: Text('indonesian'.tr()),
+      ),
+      DropdownMenuItem(
+        value: const Locale('ja'),
+        child: Text('japanese'.tr()),
+      ),
+      DropdownMenuItem(
+        value: const Locale('ko'),
+        child: Text('korean'.tr()),
+      ),
+      DropdownMenuItem(
+        value: const Locale('zh'),
+        child: Text('mandarin'.tr()),
+      ),
+    ];
 
-     return PopScope(
+    return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop || !_hasChanges) return;
 
         // Show notification that settings were changed
-         ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(
-             content: Text('settings_updated'.tr()),
-             duration: const Duration(seconds: 2),
-           ),
-         );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('settings_updated'.tr()),
+            duration: const Duration(seconds: 2),
+          ),
+        );
       },
       child: Scaffold(
-         appBar: AppBar(
-           title: Text('settings'.tr()),
-         ),
+        appBar: AppBar(
+          title: Text('settings'.tr()),
+        ),
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : ListView(
                 children: [
-                   // Language Selection
-                   ListTile(
-                     title: Text('language'.tr()),
-                      trailing: DropdownButton<Locale>(
-                        value: context.locale,
-                        onChanged: (Locale? newLocale) async {
-                          if (newLocale != null) {
-                            await context.setLocale(newLocale);
-                            widget.onChangeLanguage();
-                          }
-                        },
-                        items: languageItems,
-                      ),
-                   ),
+                  // Language Selection
+                  ListTile(
+                    title: Text('language'.tr()),
+                    trailing: DropdownButton<Locale>(
+                      value: context.locale,
+                      onChanged: (Locale? newLocale) async {
+                        if (newLocale != null) {
+                          await context.setLocale(newLocale);
+                          widget.onChangeLanguage();
+                        }
+                      },
+                      items: languageItems,
+                    ),
+                  ),
                   const Divider(),
 
                   // Auto-Save Toggle
@@ -154,14 +153,14 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const Divider(),
 
-                   // Color Scheme Section
-                   Padding(
-                     padding: const EdgeInsets.all(16.0),
-                     child: Text(
-                       'theme_color'.tr(),
-                       style: Theme.of(context).textTheme.titleMedium,
-                     ),
-                   ),
+                  // Color Scheme Section
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      'theme_color'.tr(),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
                   SizedBox(
                     height: 60,
                     child: ListView(
@@ -174,28 +173,28 @@ class _SettingsPageState extends State<SettingsPage> {
                               showDialog(
                                 context: context,
                                 builder: (context) {
-                                   return AlertDialog(
-                                     title: Text('pick_color'.tr()),
-                                     content: SingleChildScrollView(
-                                       child: ColorPicker(
-                                         pickerColor: widget.customColor ??
-                                             widget.colorScheme.color,
-                                         onColorChanged: (color) {
-                                           widget.onChangeColorScheme(
-                                               AppColorScheme.custom, color);
-                                           _markChanges();
-                                         },
-                                       ),
-                                     ),
-                                     actions: <Widget>[
-                                       TextButton(
-                                         child: Text('done'.tr()),
-                                         onPressed: () {
-                                           Navigator.of(context).pop();
-                                         },
-                                       ),
-                                     ],
-                                   );
+                                  return AlertDialog(
+                                    title: Text('pick_color'.tr()),
+                                    content: SingleChildScrollView(
+                                      child: ColorPicker(
+                                        pickerColor: widget.customColor ??
+                                            widget.colorScheme.color,
+                                        onColorChanged: (color) {
+                                          widget.onChangeColorScheme(
+                                              AppColorScheme.custom, color);
+                                          _markChanges();
+                                        },
+                                      ),
+                                    ),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        child: Text('done'.tr()),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                    ],
+                                  );
                                 },
                               );
                             },
@@ -229,17 +228,17 @@ class _SettingsPageState extends State<SettingsPage> {
                               child: Container(
                                 width: 44,
                                 height: 44,
-                                decoration: BoxDecoration(
-                                  color: scheme.color,
-                                  shape: BoxShape.circle,
-                                  border: widget.colorScheme == scheme
-                                      ? Border.all(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
-                                          width: 2)
-                                      : null,
-                                ),
+                                // decoration: BoxDecoration(
+                                //   color: scheme.color,
+                                //   shape: BoxShape.circle,
+                                //   border: widget.colorScheme == scheme
+                                //       ? Border.all(
+                                //           color: Theme.of(context)
+                                //               .colorScheme
+                                //               .onSurface,
+                                //           width: 2)
+                                //       : null,
+                                // ),
                               ),
                             ),
                           );

@@ -1,10 +1,11 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/date_symbol_data_local.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'pages/main_screen.dart'; // pastikan path ini sesuai
-
+ import 'dart:async';
+ import 'package:flutter/material.dart';
+ import 'package:shared_preferences/shared_preferences.dart';
+ import 'package:intl/date_symbol_data_local.dart';
+ import 'package:easy_localization/easy_localization.dart';
+ import 'package:flutter_quill/flutter_quill.dart';
+ import 'dart:ui' as ui;
+ import 'pages/main_screen.dart'; // pastikan path ini sesuai
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
@@ -49,6 +50,7 @@ class _MyAppState extends State<MyApp> {
   AppColorScheme _colorScheme = AppColorScheme.blue;
   Color? _customColor;
   bool _autoSaveEnabled = true;
+  bool _isChangingLanguage = false;
 
   // Shared prefs instance
   SharedPreferences? _prefs;
@@ -62,11 +64,6 @@ class _MyAppState extends State<MyApp> {
     _initAndLoadSettings();
   }
 
-  void _changeLanguage() {
-    setState(() {
-      _key = UniqueKey();
-    });
-  }
 
   Future<void> _initAndLoadSettings() async {
     _prefs = await SharedPreferences.getInstance();
@@ -88,6 +85,19 @@ class _MyAppState extends State<MyApp> {
       }
       _autoSaveEnabled = autoSaveEnabled;
       _initialized = true; // siap untuk lanjut dari splash
+    });
+  }
+
+  void _changeLanguage() {
+    setState(() {
+      _key = UniqueKey();
+      _isChangingLanguage = true;
+    });
+    // After a short delay, hide the indicator
+    Future.delayed(const Duration(milliseconds: 500), () {
+      setState(() {
+        _isChangingLanguage = false;
+      });
     });
   }
 
@@ -130,52 +140,68 @@ class _MyAppState extends State<MyApp> {
             ? _customColor!
             : _colorScheme.color;
 
-    return MaterialApp(
-      key: _key,
-      title: 'app_name'.tr(),
-      debugShowCheckedModeBanner: false,
-      locale: context.locale,
-      theme: ThemeData(
-        brightness: Brightness.light,
-        scaffoldBackgroundColor: Colors.grey.shade100,
-        cardColor: Colors.white,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: seedColor,
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF121212),
-        cardColor: const Color(0xFF1E1E1E),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: seedColor,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
-      themeMode: _themeMode,
-      localizationsDelegates: context.localizationDelegates,
-      supportedLocales: context.supportedLocales,
+    return Directionality(
+      textDirection: ui.TextDirection.ltr,
+      child: Stack(
+        children: [
+          MaterialApp(
+            key: _key,
+            title: 'app_name'.tr(),
+            debugShowCheckedModeBanner: false,
+            locale: context.locale,
+            theme: ThemeData(
+              brightness: Brightness.light,
+              scaffoldBackgroundColor: Colors.grey.shade100,
+              cardColor: Colors.white,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: seedColor,
+                brightness: Brightness.light,
+              ),
+              useMaterial3: true,
+            ),
+            darkTheme: ThemeData(
+              brightness: Brightness.dark,
+              scaffoldBackgroundColor: const Color(0xFF121212),
+              cardColor: const Color(0xFF1E1E1E),
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: seedColor,
+                brightness: Brightness.dark,
+              ),
+              useMaterial3: true,
+            ),
+            themeMode: _themeMode,
+            localizationsDelegates: [...context.localizationDelegates, FlutterQuillLocalizations.delegate],
+            supportedLocales: context.supportedLocales,
 
-      // Home: tampilkan SplashPage sampai _initialized == true, lalu MainScreen
-      home: SplashPage(
-        initialized: _initialized,
-        onFinishInitialization: () {
-          // nothing needed here, widget will rebuild and replace itself
-        },
-        // Kirimkan builder MainScreen ketika sudah siap
-         mainScreenBuilder: () => MainScreen(
-          onToggleTheme: _toggleTheme,
-          themeMode: _themeMode,
-          colorScheme: _colorScheme,
-          onChangeColorScheme: _changeColorScheme,
-          customColor: _customColor,
-          autoSaveEnabled: _autoSaveEnabled,
-          onAutoSaveChanged: _onAutoSaveChanged,
-          onChangeLanguage: _changeLanguage,
-        ),
+            // Home: tampilkan SplashPage sampai _initialized == true, lalu MainScreen
+            home: SplashPage(
+              initialized: _initialized,
+              onFinishInitialization: () {
+                // nothing needed here, widget will rebuild and replace itself
+              },
+              // Kirimkan builder MainScreen ketika sudah siap
+              mainScreenBuilder: () => MainScreen(
+                onToggleTheme: _toggleTheme,
+                themeMode: _themeMode,
+                colorScheme: _colorScheme,
+                onChangeColorScheme: _changeColorScheme,
+                customColor: _customColor,
+                autoSaveEnabled: _autoSaveEnabled,
+                onAutoSaveChanged: _onAutoSaveChanged,
+                onChangeLanguage: _changeLanguage,
+              ),
+            ),
+          ),
+          if (_isChangingLanguage)
+            const Opacity(
+              opacity: 0.5,
+              child: ModalBarrier(dismissible: false, color: Colors.black),
+            ),
+          if (_isChangingLanguage)
+            const Center(
+              child: CircularProgressIndicator(),
+            ),
+        ],
       ),
     );
   }
