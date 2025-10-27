@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:my_note/pages/note_edit_page.dart';
-import 'package:my_note/pages/pin_setup_page.dart';
+ import 'package:my_note/pages/note_edit_page.dart';
+ import 'package:my_note/pages/pin_setup_page.dart';
+ import 'package:my_note/pages/pin_input_page.dart';
 import 'package:my_note/widgets/category_list.dart';
 import '../models/note.dart';
 import '../services/note_service.dart';
 import '../services/pin_service.dart';
 import '../utils/crypto_helper.dart';
-import '../widgets/note_card.dart';
-import '../widgets/group_header.dart';
-import '../widgets/empty_state.dart';
+ import '../widgets/note_card.dart';
+ import '../widgets/group_header.dart';
+ import '../widgets/empty_state.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf/shelf_io.dart' as io;
+import 'package:qr_flutter/qr_flutter.dart';
 
 class SecretNoteListPage extends StatefulWidget {
   final String pin;
@@ -211,11 +215,96 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
     });
   }
 
-  void _shareSelectedNotes() {
-    if (_selectedNotes.isNotEmpty && widget.onShareNote != null) {
-      widget.onShareNote!(_selectedNotes);
-      _clearSelection();
+  void _shareSelectedNotes() async {
+    if (_selectedNotes.isEmpty) return;
+
+    final isBulk = _selectedNotes.length > 1;
+    final title = isBulk
+        ? 'Share ${_selectedNotes.length} Secret Notes'
+        : 'Share Secret Note: ${_selectedNotes.first.title}';
+
+    // Encrypt secret notes before sharing
+    final encryptedNotes = _selectedNotes.map((note) {
+      final map = note.toMap();
+      if (note.isSecret) {
+        final encryptedContent =
+            _crypto.encrypt(note.content, widget.pin, note.id);
+        print(
+            'Encrypted content for note ${note.id}: ${encryptedContent.substring(0, 20)}...'); // Debug
+        map['content'] = encryptedContent;
+      }
+      return map;
+    }).toList();
+
+    // Get local IP
+    final interfaces = await NetworkInterface.list();
+    String ip;
+    try {
+      ip = interfaces
+          .firstWhere(
+            (iface) =>
+                iface.name.contains('wlan') ||
+                iface.name.contains('eth') ||
+                iface.name.contains('Wi-Fi') ||
+                iface.name.contains('Ethernet'),
+            orElse: () =>
+                interfaces.firstWhere((iface) => iface.addresses.isNotEmpty),
+          )
+          .addresses
+          .first
+          .address;
+    } catch (e) {
+      ip = '127.0.0.1'; // Fallback to localhost
     }
+
+    // Start HTTP server
+    final handler = shelf.Pipeline().addHandler((shelf.Request request) {
+      print('Request path: ${request.url.path}');
+      if (request.url.path == '/notes' || request.url.path == 'notes') {
+        print('Sharing ${encryptedNotes.length} notes');
+        final notesData = jsonEncode(encryptedNotes);
+        return shelf.Response.ok(notesData,
+            headers: {'Content-Type': 'application/json'});
+      }
+      return shelf.Response.notFound('Not found');
+    });
+
+    HttpServer server;
+    try {
+      server = await io.serve(handler, ip, 8080);
+    } catch (e) {
+      server = await io.serve(handler, ip, 0);
+    }
+    print('Server running on http://${server.address.host}:${server.port}');
+
+    final networkData =
+        jsonEncode({'ip': server.address.host, 'port': server.port});
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: SizedBox(
+          width: 200,
+          height: 200,
+          child: QrImageView(
+            data: networkData,
+            version: QrVersions.auto,
+            size: 200.0,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              server.close();
+              Navigator.of(context).pop();
+            },
+            child: Text('Close'),
+          ),
+        ],
+      ),
+    );
+
+    _clearSelection();
   }
 
   Future<void> _resetPin() async {
@@ -309,6 +398,7 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
   void _processScannedData(String data) async {
     if (!mounted) return;
     try {
+      // Try to parse as network data first
       final Map<String, dynamic> networkData = jsonDecode(data);
       final ip = networkData['ip'];
       final port = networkData['port'];
@@ -348,10 +438,17 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
           }
         }
       } else {
-        // Fallback to old QR
-        final Map<String, dynamic> noteMap = jsonDecode(data);
-        final note = Note.fromMap(noteMap);
-        _handleReceivedNotes([note]);
+        // Try to parse as direct notes data
+        try {
+          final List<dynamic> notesJson = jsonDecode(data);
+          final notes = notesJson.map((json) => Note.fromMap(json)).toList();
+          _handleReceivedNotes(notes);
+        } catch (e) {
+          // Fallback to single note
+          final Map<String, dynamic> noteMap = jsonDecode(data);
+          final note = Note.fromMap(noteMap);
+          _handleReceivedNotes([note]);
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -366,23 +463,47 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
     if (!mounted) return;
     final hasSecret = notes.any((n) => n.isSecret);
     if (hasSecret) {
-      final pin = await _promptPin();
-      if (pin != null && pin.isNotEmpty) {
+      bool pinCorrect = false;
+      while (!pinCorrect && mounted) {
+        final pin = await _promptPin();
+        if (pin == null || pin.isEmpty) {
+          // Cancel
+          return;
+        }
+        bool allDecrypted = true;
         for (var note in notes) {
           if (note.isSecret) {
             try {
-              note.content = _crypto.decrypt(note.content, pin, note.id);
+              final decryptedContent =
+                  _crypto.decrypt(note.content, pin, note.id);
+              print(
+                  'Decrypted content for note ${note.id}: ${decryptedContent.substring(0, 20)}...'); // Debug
+              note.content = decryptedContent;
             } catch (e) {
+              print('Decrypt failed for note ${note.id}: $e'); // Debug
               note.content = '[Encrypted] Wrong PIN or Corrupted data';
+              allDecrypted = false;
             }
           }
-          addOrUpdateNoteAndSave(note);
         }
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('${notes.length} notes imported successfully')),
-          );
+        if (allDecrypted) {
+          pinCorrect = true;
+          for (var note in notes) {
+            addOrUpdateNoteAndSave(note);
+          }
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  content: Text('${notes.length} notes imported successfully')),
+            );
+          }
+        } else {
+          // PIN salah, loop lagi
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Wrong PIN, try again')),
+            );
+          }
         }
       }
     } else {
@@ -400,26 +521,14 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
 
   Future<String?> _promptPin() async {
     if (!mounted) return null;
-    final controller = TextEditingController();
-    return showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Enter PIN for Secret Notes'),
-        content: TextField(
-          controller: controller,
-          obscureText: true,
-          decoration: InputDecoration(hintText: 'PIN'),
+    return Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PinInputPage(
+          title: 'Enter PIN for Secret Notes',
+          hint: 'Enter PIN to decrypt secret notes',
+          onSubmit: (pin) => Navigator.of(context).pop(pin),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(null),
-            child: Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(controller.text),
-            child: Text('OK'),
-          ),
-        ],
       ),
     );
   }
@@ -564,11 +673,7 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
                     },
               onTogglePin: () => _togglePin(item),
               onDelete: () => _deleteNote(item),
-              onShare: () {
-                if (widget.onShareNote != null) {
-                  widget.onShareNote!([item]);
-                }
-              },
+              onShare: () => _shareSelectedNotes(),
               isSelectionMode: _isSelectionMode,
               isSelected: _selectedNotes.contains(item),
               onToggleSelection: () => _toggleSelection(item),

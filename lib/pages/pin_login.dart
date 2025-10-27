@@ -6,8 +6,7 @@ import '../widgets/pin_input.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class PinLoginPage extends StatefulWidget {
-  final void Function(List<Note> notes)? onShareNote;
-  const PinLoginPage({super.key, this.onShareNote});
+  const PinLoginPage({super.key});
 
   @override
   State<PinLoginPage> createState() => _PinLoginPageState();
@@ -27,7 +26,6 @@ class _PinLoginPageState extends State<PinLoginPage> {
           MaterialPageRoute(
             builder: (_) => SecretNoteListPage(
               pin: pin,
-              onShareNote: widget.onShareNote,
             ),
           ),
         );
