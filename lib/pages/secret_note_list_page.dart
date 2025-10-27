@@ -36,21 +36,21 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
     loadNotes();
   }
 
-   Future<void> loadNotes() async {
-     final loadedNotes = await _noteService.getSecretNotes(widget.pin);
+  Future<void> loadNotes() async {
+    final loadedNotes = await _noteService.getSecretNotes(widget.pin);
 
-     if (mounted) {
-       setState(() {
-         _notes
-           ..clear()
-           ..addAll(loadedNotes);
-         _sortNotes();
-         _isLoading = false;
-       });
-     }
+    if (mounted) {
+      setState(() {
+        _notes
+          ..clear()
+          ..addAll(loadedNotes);
+        _sortNotes();
+        _isLoading = false;
+      });
     }
+  }
 
-   void addOrUpdateNoteAndSave(Note note) {
+  void addOrUpdateNoteAndSave(Note note) {
     final secretNote = Note(
       id: note.id,
       title: note.title,
@@ -187,7 +187,8 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Reset PIN'),
-        content: const Text('This will delete your current PIN. You will need to set a new one to access secret notes. Continue?'),
+        content: const Text(
+            'This will delete your current PIN. You will need to set a new one to access secret notes. Continue?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -202,13 +203,16 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
     );
 
     if (confirmed == true) {
-      await _pinService.resetPin();
-      if (mounted) {
-        Navigator.of(context).pop(); // Go back to main screen
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => PinSetupPage()),
-        );
+      final newPin = await Navigator.push<String>(
+        context,
+        MaterialPageRoute(builder: (context) => PinSetupPage(isForReset: true)),
+      );
+
+      if (newPin != null) {
+        await _pinService.resetPin(newPin, widget.pin);
+        if (mounted) {
+          Navigator.of(context).pop(); // Go back to main screen
+        }
       }
     }
   }
@@ -287,43 +291,43 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
         if (item is Note) {
           return Dismissible(
             key: Key(item.id),
-             direction: DismissDirection.horizontal,
-             background: Container(
-               color: Colors.red,
-               alignment: Alignment.centerRight,
-               padding: const EdgeInsets.symmetric(horizontal: 20.0),
-               child: const Icon(Icons.delete, color: Colors.white),
-             ),
-             secondaryBackground: Container(
-               color: Colors.red,
-               alignment: Alignment.centerLeft,
-               padding: const EdgeInsets.symmetric(horizontal: 20.0),
-               child: const Icon(Icons.delete, color: Colors.white),
-             ),
-             onDismissed: (_) => _deleteNote(item),
+            direction: DismissDirection.horizontal,
+            background: Container(
+              color: Colors.red,
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: const Icon(Icons.delete, color: Colors.white),
+            ),
+            secondaryBackground: Container(
+              color: Colors.red,
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: const Icon(Icons.delete, color: Colors.white),
+            ),
+            onDismissed: (_) => _deleteNote(item),
             child: ReorderableDragStartListener(
               index: index,
               key: Key(item.id),
-               child: NoteCard(
-                 note: item,
-                 index: index,
-                 onTap: () async {
-                   final updated = await Navigator.push(
-                     context,
-                     MaterialPageRoute(
-                       builder: (_) =>
-                           NoteEditPage(note: item, autoSaveEnabled: true),
-                     ),
-                   );
+              child: NoteCard(
+                note: item,
+                index: index,
+                onTap: () async {
+                  final updated = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          NoteEditPage(note: item, autoSaveEnabled: true),
+                    ),
+                  );
 
-                   if (updated is Note) {
-                     addOrUpdateNoteAndSave(updated);
-                   }
-                 },
-                 onTogglePin: () => _togglePin(item),
-                 onDelete: () => _deleteNote(item),
-                 getFlatListIndex: (note) => _notes.indexOf(note),
-               ),
+                  if (updated is Note) {
+                    addOrUpdateNoteAndSave(updated);
+                  }
+                },
+                onTogglePin: () => _togglePin(item),
+                onDelete: () => _deleteNote(item),
+                getFlatListIndex: (note) => _notes.indexOf(note),
+              ),
             ),
           );
         }

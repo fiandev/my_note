@@ -3,7 +3,9 @@ import '../services/pin_service.dart';
 import '../widgets/pin_input.dart';
 
 class PinSetupPage extends StatefulWidget {
-  const PinSetupPage({super.key});
+  final bool isForReset;
+
+  const PinSetupPage({super.key, this.isForReset = false});
 
   @override
   State<PinSetupPage> createState() => _PinSetupPageState();
@@ -24,8 +26,12 @@ class _PinSetupPageState extends State<PinSetupPage> {
       });
     } else {
       if (pin == _firstPin) {
-        await _pinService.savePin(pin);
-        if (mounted) Navigator.pop(context, pin);
+        if (widget.isForReset) {
+          Navigator.pop(context, pin);
+        } else {
+          await _pinService.savePin(pin);
+          if (mounted) Navigator.pop(context, pin);
+        }
       } else {
         setState(() {
           _error = "PIN tidak cocok. Coba lagi.";
