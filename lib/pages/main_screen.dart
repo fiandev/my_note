@@ -18,6 +18,7 @@ class MainScreen extends StatefulWidget {
   final Color? customColor;
   final bool autoSaveEnabled;
   final void Function(bool) onAutoSaveChanged;
+  final VoidCallback onChangeLanguage;
 
   const MainScreen({
     super.key,
@@ -28,6 +29,7 @@ class MainScreen extends StatefulWidget {
     this.customColor,
     required this.autoSaveEnabled,
     required this.onAutoSaveChanged,
+    required this.onChangeLanguage,
   });
 
   @override
@@ -163,6 +165,7 @@ class _MainScreenState extends State<MainScreen> {
                       onChangeColorScheme: widget.onChangeColorScheme,
                       customColor: widget.customColor,
                       onAutoSaveChanged: widget.onAutoSaveChanged,
+                      onChangeLanguage: widget.onChangeLanguage,
                     ),
                   ),
                 );

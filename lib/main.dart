@@ -1,10 +1,8 @@
-// lib/main.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'pages/main_screen.dart'; // pastikan path ini sesuai
 
 Future<void> main() async {
@@ -12,17 +10,13 @@ Future<void> main() async {
   await EasyLocalization.ensureInitialized();
   await initializeDateFormatting('id_ID', null);
 
-
-
   runApp(
-    Phoenix(
-      child: EasyLocalization(
-        supportedLocales: const [Locale('en'), Locale('id'), Locale('ja'), Locale('ko'), Locale('zh')],
-        path: 'lang',
-        fallbackLocale: const Locale('id'),
-        useOnlyLangCode: true,
-        child: const MyApp(),
-      ),
+    EasyLocalization(
+      supportedLocales: const [Locale('en'), Locale('id'), Locale('ja'), Locale('ko'), Locale('zh')],
+      path: 'lang',
+      fallbackLocale: const Locale('id'),
+      useOnlyLangCode: true,
+      child: const MyApp(),
     ),
   );
 }
@@ -49,6 +43,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  Key _key = UniqueKey();
   // Settings default
   ThemeMode _themeMode = ThemeMode.light;
   AppColorScheme _colorScheme = AppColorScheme.blue;
@@ -65,6 +60,12 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _initAndLoadSettings();
+  }
+
+  void _changeLanguage() {
+    setState(() {
+      _key = UniqueKey();
+    });
   }
 
   Future<void> _initAndLoadSettings() async {
@@ -130,6 +131,7 @@ class _MyAppState extends State<MyApp> {
             : _colorScheme.color;
 
     return MaterialApp(
+      key: _key,
       title: 'app_name'.tr(),
       debugShowCheckedModeBanner: false,
       locale: context.locale,
@@ -172,6 +174,7 @@ class _MyAppState extends State<MyApp> {
           customColor: _customColor,
           autoSaveEnabled: _autoSaveEnabled,
           onAutoSaveChanged: _onAutoSaveChanged,
+          onChangeLanguage: _changeLanguage,
         ),
       ),
     );

@@ -3,7 +3,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:my_note/main.dart';
-import 'package:flutter_phoenix/flutter_phoenix.dart';
+
 
 class SettingsPage extends StatefulWidget {
   final VoidCallback onToggleTheme;
@@ -12,6 +12,7 @@ class SettingsPage extends StatefulWidget {
   final void Function(AppColorScheme, [Color? customColor]) onChangeColorScheme;
   final Color? customColor;
   final void Function(bool) onAutoSaveChanged;
+  final VoidCallback onChangeLanguage;
 
   const SettingsPage({
     super.key,
@@ -21,6 +22,7 @@ class SettingsPage extends StatefulWidget {
     required this.onChangeColorScheme,
     this.customColor,
     required this.onAutoSaveChanged,
+    required this.onChangeLanguage,
   });
 
   @override
@@ -120,6 +122,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         onChanged: (Locale? newLocale) async {
                           if (newLocale != null) {
                             await context.setLocale(newLocale);
+                            widget.onChangeLanguage();
                           }
                         },
                         items: languageItems,
