@@ -37,7 +37,7 @@ class NoteCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 4.0),
       elevation: 2,
       child: InkWell(
-        onTap: onTap,
+        onTap: isSelectionMode ? null : onTap,
         onLongPress: () async {
           final confirmed = await showDialog<bool>(
             context: context,
@@ -70,13 +70,14 @@ class NoteCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                     if (isSelectionMode)
-                      Checkbox(
-                        value: isSelected,
-                        onChanged: (value) {
-                          print('Checkbox changed for ${note.title}, selected: $isSelected');
-                          onToggleSelection();
-                        },
-                      ),
+                       Checkbox(
+                         value: isSelected,
+                         onChanged: (value) {
+                           if (value != null) {
+                             onToggleSelection();
+                           }
+                         },
+                       ),
                   Expanded(
                     child: Text(
                       note.title,

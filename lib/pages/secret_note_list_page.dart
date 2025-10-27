@@ -1,14 +1,20 @@
- import 'package:flutter/material.dart';
- import 'package:my_note/pages/note_edit_page.dart';
- import 'package:my_note/pages/pin_setup_page.dart';
- import 'package:my_note/widgets/category_list.dart';
- import '../models/note.dart';
- import '../services/note_service.dart';
- import '../services/pin_service.dart';
- import '../widgets/note_card.dart';
- import '../widgets/group_header.dart';
- import '../widgets/empty_state.dart';
- import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:my_note/pages/note_edit_page.dart';
+import 'package:my_note/pages/pin_setup_page.dart';
+import 'package:my_note/widgets/category_list.dart';
+import '../models/note.dart';
+import '../services/note_service.dart';
+import '../services/pin_service.dart';
+import '../utils/crypto_helper.dart';
+import '../widgets/note_card.dart';
+import '../widgets/group_header.dart';
+import '../widgets/empty_state.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:http/http.dart' as http;
 
 class SecretNoteListPage extends StatefulWidget {
   final String pin;
@@ -28,9 +34,12 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
   final List<Note> _notes = [];
   final NoteService _noteService = NoteService();
   final PinService _pinService = PinService();
+  final CryptoHelper _crypto = CryptoHelper();
 
   bool _isLoading = true;
   String? _selectedCategory;
+  bool _isSelectionMode = false;
+  final List<Note> _selectedNotes = [];
   static const int maxPins = 5;
 
   @override
@@ -93,12 +102,12 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
     await _saveNotes();
 
     if (mounted) {
-       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.tr('note_deleted')),
-            action: SnackBarAction(
-              label: context.tr('undo'),
-              onPressed: () async {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.tr('note_deleted')),
+          action: SnackBarAction(
+            label: context.tr('undo'),
+            onPressed: () async {
               setState(() {
                 _notes.insert(noteIndex, note);
                 _sortNotes();
@@ -120,11 +129,11 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
     final pinnedCount = _notes.where((n) => n.isPinned).length;
     if (!note.isPinned && pinnedCount >= maxPins) {
       ScaffoldMessenger.of(context).showSnackBar(
-         SnackBar(
-            content: Text('${context.tr('pin_limit')} 5 ${context.tr('notes')}.'),
-           duration: const Duration(seconds: 2),
-         ),
-       );
+        SnackBar(
+          content: Text('${context.tr('pin_limit')} 5 ${context.tr('notes')}.'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
       return;
     }
 
@@ -185,41 +194,234 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
     });
   }
 
+  void _toggleSelection(Note note) {
+    setState(() {
+      if (_selectedNotes.contains(note)) {
+        _selectedNotes.remove(note);
+      } else {
+        _selectedNotes.add(note);
+      }
+    });
+  }
+
+  void _clearSelection() {
+    setState(() {
+      _isSelectionMode = false;
+      _selectedNotes.clear();
+    });
+  }
+
+  void _shareSelectedNotes() {
+    if (_selectedNotes.isNotEmpty && widget.onShareNote != null) {
+      widget.onShareNote!(_selectedNotes);
+      _clearSelection();
+    }
+  }
+
   Future<void> _resetPin() async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-         title: Text(context.tr('reset_pin')),
-         content: Text(context.tr('reset_pin_content')),
-         actions: [
-           TextButton(
-             onPressed: () => Navigator.of(context).pop(false),
-              child: Text(context.tr('cancel')),
-           ),
-           TextButton(
-             onPressed: () => Navigator.of(context).pop(true),
-              child: Text(context.tr('reset')),
-           ),
-         ],
-       ),
+        title: Text(context.tr('reset_pin')),
+        content: Text(context.tr('reset_pin_content')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(context.tr('cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(context.tr('reset')),
+          ),
+        ],
+      ),
     );
 
-     if (confirmed == true) {
-       String? newPin;
-       if (mounted) {
-         newPin = await Navigator.push<String>(
-           context,
-           MaterialPageRoute(builder: (context) => PinSetupPage(isForReset: true)),
-         );
-       }
+    if (confirmed == true) {
+      String? newPin;
+      if (mounted) {
+        newPin = await Navigator.push<String>(
+          context,
+          MaterialPageRoute(
+              builder: (context) => PinSetupPage(isForReset: true)),
+        );
+      }
 
-       if (newPin != null) {
-         await _pinService.resetPin(newPin, widget.pin);
-         if (mounted) {
-           Navigator.of(context).pop(); // Go back to main screen
-         }
-       }
-     }
+      if (newPin != null) {
+        await _pinService.resetPin(newPin, widget.pin);
+        if (mounted) {
+          Navigator.of(context).pop(); // Go back to main screen
+        }
+      }
+    }
+  }
+
+  void _scanQRCode() async {
+    // Check if platform supports QR scanning
+    if (!(Platform.isAndroid ||
+        Platform.isIOS ||
+        Platform.isMacOS ||
+        Platform.isWindows)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('QR scanning is not supported on this platform')),
+      );
+      return;
+    }
+
+    // Check if platform supports camera permission
+    if (Platform.isAndroid || Platform.isIOS) {
+      final status = await Permission.camera.request();
+      if (!status.isGranted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Camera permission is required to scan QR codes')),
+        );
+        return;
+      }
+    }
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          appBar: AppBar(title: Text('scan_qr'.tr())),
+          body: MobileScanner(
+            onDetect: (capture) {
+              final List<Barcode> barcodes = capture.barcodes;
+              for (final barcode in barcodes) {
+                if (barcode.rawValue != null) {
+                  Navigator.pop(context, barcode.rawValue);
+                  break;
+                }
+              }
+            },
+          ),
+        ),
+      ),
+    );
+
+    if (result != null && result is String) {
+      _processScannedData(result);
+    }
+  }
+
+  void _processScannedData(String data) async {
+    if (!mounted) return;
+    try {
+      final Map<String, dynamic> networkData = jsonDecode(data);
+      final ip = networkData['ip'];
+      final port = networkData['port'];
+      if (ip != null && port != null) {
+        // Connect via HTTP with timeout
+        try {
+          final response = await http
+              .get(Uri.parse('http://$ip:$port/notes'))
+              .timeout(const Duration(seconds: 10));
+          if (response.statusCode == 200) {
+            try {
+              final List<dynamic> notesJson = jsonDecode(response.body);
+              final notes =
+                  notesJson.map((json) => Note.fromMap(json)).toList();
+              _handleReceivedNotes(notes);
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Failed to parse notes: $e')),
+                );
+              }
+            }
+          } else {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                    content: Text(
+                        'Server responded with error: ${response.statusCode}')),
+              );
+            }
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to connect to server: $e')),
+            );
+          }
+        }
+      } else {
+        // Fallback to old QR
+        final Map<String, dynamic> noteMap = jsonDecode(data);
+        final note = Note.fromMap(noteMap);
+        _handleReceivedNotes([note]);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to import notes: Invalid data')),
+        );
+      }
+    }
+  }
+
+  void _handleReceivedNotes(List<Note> notes) async {
+    if (!mounted) return;
+    final hasSecret = notes.any((n) => n.isSecret);
+    if (hasSecret) {
+      final pin = await _promptPin();
+      if (pin != null && pin.isNotEmpty) {
+        for (var note in notes) {
+          if (note.isSecret) {
+            try {
+              note.content = _crypto.decrypt(note.content, pin, note.id);
+            } catch (e) {
+              note.content = '[Encrypted] Wrong PIN or Corrupted data';
+            }
+          }
+          addOrUpdateNoteAndSave(note);
+        }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('${notes.length} notes imported successfully')),
+          );
+        }
+      }
+    } else {
+      for (var note in notes) {
+        addOrUpdateNoteAndSave(note);
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('${notes.length} notes imported successfully')),
+        );
+      }
+    }
+  }
+
+  Future<String?> _promptPin() async {
+    if (!mounted) return null;
+    final controller = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Enter PIN for Secret Notes'),
+        content: TextField(
+          controller: controller,
+          obscureText: true,
+          decoration: InputDecoration(hintText: 'PIN'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(null),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(controller.text),
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -236,16 +438,49 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
         if (!didPop) Navigator.of(context).pop();
       },
       child: Scaffold(
-         appBar: AppBar(
-            title: Text(context.tr('secret_notes')),
-            actions: [
+        appBar: AppBar(
+          title: Text(_isSelectionMode
+              ? '${_selectedNotes.length} selected'
+              : context.tr('secret_notes')),
+          actions: [
+            if (Platform.isAndroid ||
+                Platform.isIOS ||
+                Platform.isMacOS ||
+                Platform.isWindows)
               IconButton(
-                icon: const Icon(Icons.lock_reset),
-                onPressed: _resetPin,
-                tooltip: context.tr('reset_pin_tooltip'),
+                icon: const Icon(Icons.qr_code_scanner),
+                onPressed: _scanQRCode,
+                tooltip: 'scan_qr'.tr(),
               ),
-            ],
-          ),
+            if (!_isSelectionMode)
+              IconButton(
+                icon: const Icon(Icons.select_all),
+                onPressed: () {
+                  setState(() {
+                    _isSelectionMode = true;
+                  });
+                },
+                tooltip: 'Select Notes',
+              ),
+            if (_isSelectionMode)
+              IconButton(
+                icon: const Icon(Icons.share),
+                onPressed: _shareSelectedNotes,
+                tooltip: 'Share Selected',
+              ),
+            if (_isSelectionMode)
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: _clearSelection,
+                tooltip: 'Cancel Selection',
+              ),
+            IconButton(
+              icon: const Icon(Icons.lock_reset),
+              onPressed: _resetPin,
+              tooltip: context.tr('reset_pin_tooltip'),
+            ),
+          ],
+        ),
         body: Column(
           children: [
             CategoryList(
@@ -296,47 +531,49 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
         if (item is Note) {
           return Dismissible(
             key: Key(item.id),
-             direction: DismissDirection.horizontal,
-             background: Container(
-               color: Colors.red,
-               alignment: Alignment.centerRight,
-               padding: const EdgeInsets.symmetric(horizontal: 20.0),
-               child: const Icon(Icons.delete, color: Colors.white),
-             ),
-             secondaryBackground: Container(
-               color: Colors.red,
-               alignment: Alignment.centerLeft,
-               padding: const EdgeInsets.symmetric(horizontal: 20.0),
-               child: const Icon(Icons.delete, color: Colors.white),
-             ),
-             onDismissed: (_) => _deleteNote(item),
-                 child: NoteCard(
-                   note: item,
-                   index: index,
-                   onTap: () async {
-                     final updated = await Navigator.push(
-                       context,
-                       MaterialPageRoute(
-                         builder: (_) =>
-                             NoteEditPage(note: item, autoSaveEnabled: true),
-                       ),
-                     );
-                     if (updated != null) {
-                       _saveNotes();
-                     }
-                   },
-                   onTogglePin: () => _togglePin(item),
-                   onDelete: () => _deleteNote(item),
-                      onShare: () {
-                        if (widget.onShareNote != null) {
-                          widget.onShareNote!([item]);
-                        }
-                      },
-                     isSelectionMode: false,
-                     isSelected: false,
-                     onToggleSelection: () {}, // Dummy
-                  ),
-           );
+            direction: DismissDirection.horizontal,
+            background: Container(
+              color: Colors.red,
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: const Icon(Icons.delete, color: Colors.white),
+            ),
+            secondaryBackground: Container(
+              color: Colors.red,
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: const Icon(Icons.delete, color: Colors.white),
+            ),
+            onDismissed: (_) => _deleteNote(item),
+            child: NoteCard(
+              note: item,
+              index: index,
+              onTap: _isSelectionMode
+                  ? () => _toggleSelection(item)
+                  : () async {
+                      final updated = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              NoteEditPage(note: item, autoSaveEnabled: true),
+                        ),
+                      );
+                      if (updated != null) {
+                        _saveNotes();
+                      }
+                    },
+              onTogglePin: () => _togglePin(item),
+              onDelete: () => _deleteNote(item),
+              onShare: () {
+                if (widget.onShareNote != null) {
+                  widget.onShareNote!([item]);
+                }
+              },
+              isSelectionMode: _isSelectionMode,
+              isSelected: _selectedNotes.contains(item),
+              onToggleSelection: () => _toggleSelection(item),
+            ),
+          );
         }
         return const SizedBox.shrink();
       },
