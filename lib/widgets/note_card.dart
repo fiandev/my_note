@@ -69,11 +69,14 @@ class NoteCard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (isSelectionMode)
-                    Checkbox(
-                      value: isSelected,
-                      onChanged: (value) => onToggleSelection(),
-                    ),
+                    if (isSelectionMode)
+                      Checkbox(
+                        value: isSelected,
+                        onChanged: (value) {
+                          print('Checkbox changed for ${note.title}, selected: $isSelected');
+                          onToggleSelection();
+                        },
+                      ),
                   Expanded(
                     child: Text(
                       note.title,
