@@ -1,21 +1,27 @@
- import 'package:flutter/material.dart';
- import 'package:my_note/widgets/category_list.dart';
- import '../models/note.dart';
- import '../services/note_service.dart';
- import '../widgets/note_card.dart';
- import '../widgets/group_header.dart';
- import '../widgets/empty_state.dart';
- import '../services/pin_service.dart';
- import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:my_note/widgets/category_list.dart';
+import '../models/note.dart';
+import '../services/note_service.dart';
+import '../widgets/note_card.dart';
+import '../widgets/group_header.dart';
+import '../widgets/empty_state.dart';
+import '../services/pin_service.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class NoteListPage extends StatefulWidget {
   final void Function({Note? note}) onNavigateToEditPage;
-  final void Function(Note note) onShareNote;
+  final void Function(List<Note> notes) onShareNote;
+  final bool isSelectionMode;
+  final List<Note> selectedNotes;
+  final void Function(Note? note)? onToggleSelection;
 
   const NoteListPage({
     super.key,
     required this.onNavigateToEditPage,
     required this.onShareNote,
+    this.isSelectionMode = false,
+    this.selectedNotes = const [],
+    this.onToggleSelection,
   });
 
   @override
@@ -122,11 +128,11 @@ class NoteListPageState extends State<NoteListPage> {
       _saveNotes();
     });
     ScaffoldMessenger.of(context).showSnackBar(
-       SnackBar(
-         content: Text('note_deleted'.tr()),
-         action: SnackBarAction(
-           label: 'undo'.tr(),
-           onPressed: () {
+      SnackBar(
+        content: Text('note_deleted'.tr()),
+        action: SnackBarAction(
+          label: 'undo'.tr(),
+          onPressed: () {
             setState(() {
               _notes.insert(noteIndex, note);
               _sortNotes();
@@ -142,11 +148,11 @@ class NoteListPageState extends State<NoteListPage> {
     final pinnedCount = _notes.where((n) => n.isPinned).length;
     if (!note.isPinned && pinnedCount >= maxPins) {
       ScaffoldMessenger.of(context).showSnackBar(
-         SnackBar(
-           content: Text('${'pin_limit'.tr()} $maxPins ${'notes'.tr()}.'),
-           duration: const Duration(seconds: 2),
-         ),
-       );
+        SnackBar(
+          content: Text('${'pin_limit'.tr()} $maxPins ${'notes'.tr()}.'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
       return;
     }
 
@@ -173,6 +179,10 @@ class NoteListPageState extends State<NoteListPage> {
     });
   }
 
+  void _toggleNoteSelection(Note note) {
+    widget.onToggleSelection?.call(note);
+  }
+
   @override
   Widget build(BuildContext context) {
     final categories = _getUniqueCategories();
@@ -192,12 +202,12 @@ class NoteListPageState extends State<NoteListPage> {
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : filteredNotes.isEmpty && _notes.isNotEmpty
-                   ? Center(
-                       child: Text(
-                         'no_notes_category'.tr(),
-                         style: Theme.of(context).textTheme.titleMedium,
-                       ),
-                     )
+                  ? Center(
+                      child: Text(
+                        'no_notes_category'.tr(),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    )
                   : _notes.isEmpty
                       ? const EmptyState()
                       : _buildNotesList(groupedNotes),
@@ -232,29 +242,32 @@ class NoteListPageState extends State<NoteListPage> {
                   if (item is Note) {
                     return Dismissible(
                       key: Key(item.id),
-                       direction: DismissDirection.horizontal,
-                       background: Container(
-                         color: Colors.red,
-                         alignment: Alignment.centerRight,
-                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                         child: const Icon(Icons.delete, color: Colors.white),
-                       ),
-                       secondaryBackground: Container(
-                         color: Colors.red,
-                         alignment: Alignment.centerLeft,
-                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                         child: const Icon(Icons.delete, color: Colors.white),
-                       ),
-                       onDismissed: (direction) => _deleteNote(item),
-                        child: NoteCard(
-                          key: Key(item.id),
-                          note: item,
-                          onTap: () => widget.onNavigateToEditPage(note: item),
-                          onTogglePin: () => _togglePin(item),
-                          onDelete: () => _deleteNote(item),
-                          onShare: () => widget.onShareNote(item),
-                          index: index,
-                        ),
+                      direction: DismissDirection.horizontal,
+                      background: Container(
+                        color: Colors.red,
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      secondaryBackground: Container(
+                        color: Colors.red,
+                        alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      onDismissed: (direction) => _deleteNote(item),
+                      child: NoteCard(
+                        key: Key(item.id),
+                        note: item,
+                        onTap: () => widget.onNavigateToEditPage(note: item),
+                        onTogglePin: () => _togglePin(item),
+                        onDelete: () => _deleteNote(item),
+                         onShare: () => widget.onShareNote([item]),
+                         index: index,
+                         isSelectionMode: widget.isSelectionMode,
+                         isSelected: widget.selectedNotes.contains(item),
+                         onToggleSelection: () => widget.onToggleSelection?.call(item),
+                      ),
                     );
                   }
                   return SizedBox(key: ValueKey('empty_$index'));
@@ -266,6 +279,4 @@ class NoteListPageState extends State<NoteListPage> {
       },
     );
   }
-
-
 }

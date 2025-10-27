@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:my_note/pages/secret_note_list_page.dart';
+import '../models/note.dart';
 import '../services/pin_service.dart';
 import '../widgets/pin_input.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class PinLoginPage extends StatefulWidget {
-  const PinLoginPage({super.key});
+  final void Function(List<Note> notes)? onShareNote;
+  const PinLoginPage({super.key, this.onShareNote});
 
   @override
   State<PinLoginPage> createState() => _PinLoginPageState();
@@ -20,14 +22,15 @@ class _PinLoginPageState extends State<PinLoginPage> {
 
     if (ok) {
       if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => SecretNoteListPage(
-            pin: pin,
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => SecretNoteListPage(
+              pin: pin,
+              onShareNote: widget.onShareNote,
+            ),
           ),
-        ),
-      );
+        );
     } else {
       setState(() => _error = 'pin_incorrect'.tr());
     }

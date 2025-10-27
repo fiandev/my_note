@@ -12,10 +12,12 @@
 
 class SecretNoteListPage extends StatefulWidget {
   final String pin;
+  final void Function(List<Note> notes)? onShareNote;
 
   const SecretNoteListPage({
     super.key,
     required this.pin,
+    this.onShareNote,
   });
 
   @override
@@ -308,26 +310,32 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
                child: const Icon(Icons.delete, color: Colors.white),
              ),
              onDismissed: (_) => _deleteNote(item),
-                child: NoteCard(
-                  note: item,
-                  index: index,
-                  onTap: () async {
-                    final updated = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            NoteEditPage(note: item, autoSaveEnabled: true),
-                      ),
-                    );
-
-                    if (updated is Note) {
-                      addOrUpdateNoteAndSave(updated);
-                    }
-                  },
-                  onTogglePin: () => _togglePin(item),
-                  onDelete: () => _deleteNote(item),
-                  onShare: () {}, // No sharing for secret notes
-                ),
+                 child: NoteCard(
+                   note: item,
+                   index: index,
+                   onTap: () async {
+                     final updated = await Navigator.push(
+                       context,
+                       MaterialPageRoute(
+                         builder: (_) =>
+                             NoteEditPage(note: item, autoSaveEnabled: true),
+                       ),
+                     );
+                     if (updated != null) {
+                       _saveNotes();
+                     }
+                   },
+                   onTogglePin: () => _togglePin(item),
+                   onDelete: () => _deleteNote(item),
+                      onShare: () {
+                        if (widget.onShareNote != null) {
+                          widget.onShareNote!([item]);
+                        }
+                      },
+                     isSelectionMode: false,
+                     isSelected: false,
+                     onToggleSelection: () {}, // Dummy
+                  ),
            );
         }
         return const SizedBox.shrink();
