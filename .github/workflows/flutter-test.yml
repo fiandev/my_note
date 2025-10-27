@@ -4,9 +4,20 @@ on:
   push:
     branches:
       - master
+    paths:
+      - "lib/**"
+      - "pubspec.yaml"
+      - "test/**"
+      - "assets/**"
   pull_request:
     branches:
       - master
+    paths:
+      - "lib/**"
+      - "pubspec.yaml"
+      - "test/**"
+      - "lang/**"
+      - "assets/**"
 
 jobs:
   test:
