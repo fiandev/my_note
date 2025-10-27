@@ -2,11 +2,17 @@ name: Flutter Release
 
 on:
   release:
-    types: [published, edited]
+    types: [published]
   workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Apakah ingin menjalankan workflow ini?"
+        required: true
+        default: "no"
 
 jobs:
   build:
+    if: ${{ github.event.inputs.confirm == 'yes' || github.event_name == 'release' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -28,9 +34,9 @@ jobs:
         run: flutter build apk --release
 
       - name: Upload APK to GitHub Release
-        if: github.event_name == 'release'
+        if: github.event_name == 'release' && github.event.action == 'published'
         uses: softprops/action-gh-release@v1
         with:
           files: build/app/outputs/flutter-apk/*.apk
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
