@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:my_note/pages/secret_note_list_page.dart';
-import '../services/pin_service.dart';
-import '../widgets/pin_input.dart';
+ import 'package:flutter/material.dart';
+ import 'package:my_note/pages/secret_note_list_page.dart';
+ import '../services/pin_service.dart';
+ import '../widgets/pin_input.dart';
+ import 'package:easy_localization/easy_localization.dart';
 
 class PinLoginPage extends StatefulWidget {
   const PinLoginPage({super.key});
@@ -28,19 +29,19 @@ class _PinLoginPageState extends State<PinLoginPage> {
         ),
       );
     } else {
-      setState(() => _error = "PIN salah, coba lagi.");
+      setState(() => _error = 'pin_incorrect'.tr());
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Masukkan PIN")),
+      appBar: AppBar(title: Text('enter_pin'.tr())),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text("Masukkan PIN Anda untuk melanjutkan"),
+             Text('enter_pin_continue'.tr()),
             const SizedBox(height: 4),
             if (_error != null)
               Column(

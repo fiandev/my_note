@@ -7,6 +7,7 @@
  import 'package:my_note/pages/pin_setup_page.dart';
  import 'package:my_note/pages/secret_note_list_page.dart';
  import 'package:my_note/services/pin_service.dart';
+ import 'package:easy_localization/easy_localization.dart';
  import 'note_list_page.dart';
 
 class MainScreen extends StatefulWidget {
@@ -17,6 +18,8 @@ class MainScreen extends StatefulWidget {
   final Color? customColor;
   final bool autoSaveEnabled;
   final void Function(bool) onAutoSaveChanged;
+  final Locale currentLocale;
+  final void Function(Locale) onChangeLocale;
 
   const MainScreen({
     super.key,
@@ -27,6 +30,8 @@ class MainScreen extends StatefulWidget {
     this.customColor,
     required this.autoSaveEnabled,
     required this.onAutoSaveChanged,
+    required this.currentLocale,
+    required this.onChangeLocale,
   });
 
   @override
@@ -84,21 +89,21 @@ class _MainScreenState extends State<MainScreen> {
          title: Row(
            mainAxisAlignment: MainAxisAlignment.spaceBetween,
            children: [
-             const Text(
-               'MyNote',
-               style: TextStyle(
-                 fontWeight: FontWeight.bold,
-                 color: Colors.white,
-               ),
-             ),
+              Text(
+                'app_name'.tr(),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
              const SizedBox(width: 8), // jarak antara title dan tombol
              Row(
                children: [
-                 IconButton(
-                   icon: const Icon(Icons.lock_outline),
-                   onPressed: _navigateToSecretNotes,
-                   tooltip: 'Secret Notes',
-                 ),
+                  IconButton(
+                    icon: const Icon(Icons.lock_outline),
+                    onPressed: _navigateToSecretNotes,
+                    tooltip: 'secret_notes'.tr(),
+                  ),
                  IconButton(
                    icon: const Icon(Icons.menu),
                    onPressed: () => _scaffoldKey.currentState?.openDrawer(),
@@ -147,10 +152,10 @@ class _MainScreenState extends State<MainScreen> {
                 ],
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
-              onTap: () {
+             ListTile(
+               leading: const Icon(Icons.settings),
+               title: Text('settings'.tr()),
+               onTap: () {
                 Navigator.pop(context); // Close drawer
                 Navigator.push(
                   context,
@@ -162,6 +167,8 @@ class _MainScreenState extends State<MainScreen> {
                       onChangeColorScheme: widget.onChangeColorScheme,
                       customColor: widget.customColor,
                       onAutoSaveChanged: widget.onAutoSaveChanged,
+                      currentLocale: widget.currentLocale,
+                      onChangeLocale: widget.onChangeLocale,
                     ),
                   ),
                 );
@@ -172,11 +179,11 @@ class _MainScreenState extends State<MainScreen> {
       ),
       body: NoteListPage(
           key: _noteListPageKey, onNavigateToEditPage: _navigateToEditPage),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _navigateToEditPage(),
-        tooltip: 'New Note',
-        child: const Icon(Icons.add),
-      ),
+       floatingActionButton: FloatingActionButton(
+         onPressed: () => _navigateToEditPage(),
+         tooltip: 'new_note'.tr(),
+         child: const Icon(Icons.add),
+       ),
     );
   }
 }

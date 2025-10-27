@@ -1,11 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:my_note/widgets/category_list.dart';
-import '../models/note.dart';
-import '../services/note_service.dart';
-import '../widgets/note_card.dart';
-import '../widgets/group_header.dart';
-import '../widgets/empty_state.dart';
-import '../services/pin_service.dart';
+ import 'package:flutter/material.dart';
+ import 'package:my_note/widgets/category_list.dart';
+ import '../models/note.dart';
+ import '../services/note_service.dart';
+ import '../widgets/note_card.dart';
+ import '../widgets/group_header.dart';
+ import '../widgets/empty_state.dart';
+ import '../services/pin_service.dart';
+ import 'package:easy_localization/easy_localization.dart';
 
 class NoteListPage extends StatefulWidget {
   final void Function({Note? note}) onNavigateToEditPage;
@@ -119,11 +120,11 @@ class NoteListPageState extends State<NoteListPage> {
       _saveNotes();
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Note deleted'),
-        action: SnackBarAction(
-          label: 'Undo',
-          onPressed: () {
+       SnackBar(
+         content: Text('note_deleted'.tr()),
+         action: SnackBarAction(
+           label: 'undo'.tr(),
+           onPressed: () {
             setState(() {
               _notes.insert(noteIndex, note);
               _sortNotes();
@@ -139,11 +140,11 @@ class NoteListPageState extends State<NoteListPage> {
     final pinnedCount = _notes.where((n) => n.isPinned).length;
     if (!note.isPinned && pinnedCount >= maxPins) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('You can only pin a maximum of $maxPins notes.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+         SnackBar(
+           content: Text('${'pin_limit'.tr()} $maxPins ${'notes'.tr()}.'),
+           duration: const Duration(seconds: 2),
+         ),
+       );
       return;
     }
 
@@ -189,12 +190,12 @@ class NoteListPageState extends State<NoteListPage> {
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : filteredNotes.isEmpty && _notes.isNotEmpty
-                  ? Center(
-                      child: Text(
-                        'No notes in this category.',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    )
+                   ? Center(
+                       child: Text(
+                         'no_notes_category'.tr(),
+                         style: Theme.of(context).textTheme.titleMedium,
+                       ),
+                     )
                   : _notes.isEmpty
                       ? const EmptyState()
                       : _buildNotesList(groupedNotes),

@@ -1,10 +1,11 @@
-import 'dart:async';
-import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter_quill/flutter_quill.dart';
-import 'package:flutter_quill_extensions/flutter_quill_extensions.dart';
-import '../models/note.dart';
+ import 'dart:async';
+ import 'dart:convert';
+ import 'package:flutter/material.dart';
+ import 'package:file_picker/file_picker.dart';
+ import 'package:flutter_quill/flutter_quill.dart';
+ import 'package:flutter_quill_extensions/flutter_quill_extensions.dart';
+ import 'package:easy_localization/easy_localization.dart';
+ import '../models/note.dart';
 
 class NoteEditPage extends StatefulWidget {
   final Note? note;
@@ -109,8 +110,8 @@ class _NoteEditPageState extends State<NoteEditPage> {
 
     if (title.isEmpty || contentText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Title and content cannot be empty')),
-      );
+         SnackBar(content: Text('title_content_empty'.tr())),
+       );
       return;
     }
 
@@ -149,58 +150,58 @@ class _NoteEditPageState extends State<NoteEditPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.note == null ? 'New Note' : 'Edit Note'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.attach_file),
-              onPressed: _pickFile,
-              tooltip: 'Attach File',
-            ),
-            IconButton(
-              icon: const Icon(Icons.save_outlined),
-              onPressed: _saveNoteAndPop,
-              tooltip: 'Save Note',
-            ),
-          ],
-        ),
+           title: Text(widget.note == null ? 'new_note'.tr() : 'edit_note'.tr()),
+           actions: [
+             IconButton(
+               icon: const Icon(Icons.attach_file),
+               onPressed: _pickFile,
+               tooltip: 'attach_file'.tr(),
+             ),
+             IconButton(
+               icon: const Icon(Icons.save_outlined),
+               onPressed: _saveNoteAndPop,
+               tooltip: 'save_note'.tr(),
+             ),
+           ],
+         ),
         body: Column(
           children: [
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.all(16.0),
                 children: [
-                  TextField(
-                    controller: _titleController,
-                    decoration: const InputDecoration(
-                        labelText: 'Title',
-                        border: InputBorder.none,
-                        hintText: 'Enter title here...'),
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineSmall
-                        ?.copyWith(fontWeight: FontWeight.bold),
-                    textCapitalization: TextCapitalization.sentences,
-                  ),
+                   TextField(
+                     controller: _titleController,
+                     decoration: InputDecoration(
+                         labelText: 'title'.tr(),
+                         border: InputBorder.none,
+                         hintText: 'enter_title'.tr()),
+                     style: Theme.of(context)
+                         .textTheme
+                         .headlineSmall
+                         ?.copyWith(fontWeight: FontWeight.bold),
+                     textCapitalization: TextCapitalization.sentences,
+                   ),
                   const Divider(height: 8),
-                  TextField(
-                    controller: _groupController,
-                    decoration: const InputDecoration(
-                        labelText: 'Group (Optional)',
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.all(6),
-                        isDense: true),
-                    textCapitalization: TextCapitalization.words,
-                  ),
+                   TextField(
+                     controller: _groupController,
+                     decoration: InputDecoration(
+                         labelText: 'group_optional'.tr(),
+                         border: InputBorder.none,
+                         contentPadding: const EdgeInsets.all(6),
+                         isDense: true),
+                     textCapitalization: TextCapitalization.words,
+                   ),
                   const Divider(height: 8),
                   const Padding(padding: EdgeInsets.all(24)),
                   Container(
                     constraints: const BoxConstraints(minHeight: 200),
                     child: QuillEditor.basic(
                       controller: _contentController,
-                      config: QuillEditorConfig(
-                        placeholder: 'Write your rich content here...',
-                        embedBuilders: FlutterQuillEmbeds.editorBuilders(),
-                      ),
+                       config: QuillEditorConfig(
+                         placeholder: 'write_content'.tr(),
+                         embedBuilders: FlutterQuillEmbeds.editorBuilders(),
+                       ),
                     ),
                   ),
                   const SizedBox(height: 16),

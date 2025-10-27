@@ -1,9 +1,10 @@
-import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter_quill.dart';
-import 'package:intl/intl.dart';
-import 'package:intl/date_symbol_data_local.dart';
-import '../models/note.dart';
+ import 'dart:convert';
+ import 'package:flutter/material.dart';
+ import 'package:flutter_quill/flutter_quill.dart';
+ import 'package:intl/intl.dart';
+ import 'package:intl/date_symbol_data_local.dart';
+ import 'package:easy_localization/easy_localization.dart';
+ import '../models/note.dart';
 
 class NoteCard extends StatelessWidget {
   final Note note;
@@ -33,20 +34,20 @@ class NoteCard extends StatelessWidget {
           onLongPress: () async {
             final confirmed = await showDialog<bool>(
               context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Delete Note'),
-                content: Text('Are you sure you want to delete "${note.title}"?'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('Cancel'),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: const Text('Delete'),
-                  ),
-                ],
-              ),
+               builder: (context) => AlertDialog(
+                 title: Text('delete_note'.tr()),
+                 content: Text('${'delete_note_content'.tr()} "${note.title}"?'),
+                 actions: [
+                   TextButton(
+                     onPressed: () => Navigator.of(context).pop(false),
+                     child: Text('cancel'.tr()),
+                   ),
+                   TextButton(
+                     onPressed: () => Navigator.of(context).pop(true),
+                     child: Text('delete'.tr()),
+                   ),
+                 ],
+               ),
             );
             if (confirmed == true) {
               onDelete();
@@ -79,7 +80,7 @@ class NoteCard extends StatelessWidget {
                              : null,
                        ),
                        onPressed: onTogglePin,
-                       tooltip: note.isPinned ? 'Unpin Note' : 'Pin Note',
+                        tooltip: note.isPinned ? 'unpin_note'.tr() : 'pin_note'.tr(),
                      ),
                    ],
                  ),

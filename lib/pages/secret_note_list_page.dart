@@ -1,13 +1,14 @@
-import 'package:flutter/material.dart';
-import 'package:my_note/pages/note_edit_page.dart';
-import 'package:my_note/pages/pin_setup_page.dart';
-import 'package:my_note/widgets/category_list.dart';
-import '../models/note.dart';
-import '../services/note_service.dart';
-import '../services/pin_service.dart';
-import '../widgets/note_card.dart';
-import '../widgets/group_header.dart';
-import '../widgets/empty_state.dart';
+ import 'package:flutter/material.dart';
+ import 'package:my_note/pages/note_edit_page.dart';
+ import 'package:my_note/pages/pin_setup_page.dart';
+ import 'package:my_note/widgets/category_list.dart';
+ import '../models/note.dart';
+ import '../services/note_service.dart';
+ import '../services/pin_service.dart';
+ import '../widgets/note_card.dart';
+ import '../widgets/group_header.dart';
+ import '../widgets/empty_state.dart';
+ import 'package:easy_localization/easy_localization.dart';
 
 class SecretNoteListPage extends StatefulWidget {
   final String pin;
@@ -90,12 +91,12 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
     await _saveNotes();
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Note deleted'),
-          action: SnackBarAction(
-            label: 'Undo',
-            onPressed: () async {
+       ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.tr('note_deleted')),
+            action: SnackBarAction(
+              label: context.tr('undo'),
+              onPressed: () async {
               setState(() {
                 _notes.insert(noteIndex, note);
                 _sortNotes();
@@ -117,11 +118,11 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
     final pinnedCount = _notes.where((n) => n.isPinned).length;
     if (!note.isPinned && pinnedCount >= maxPins) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('You can only pin up to 5 notes.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+         SnackBar(
+            content: Text('${context.tr('pin_limit')} 5 ${context.tr('notes')}.'),
+           duration: const Duration(seconds: 2),
+         ),
+       );
       return;
     }
 
@@ -186,20 +187,19 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reset PIN'),
-        content: const Text(
-            'This will delete your current PIN. You will need to set a new one to access secret notes. Continue?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Reset'),
-          ),
-        ],
-      ),
+         title: Text(context.tr('reset_pin')),
+         content: Text(context.tr('reset_pin_content')),
+         actions: [
+           TextButton(
+             onPressed: () => Navigator.of(context).pop(false),
+              child: Text(context.tr('cancel')),
+           ),
+           TextButton(
+             onPressed: () => Navigator.of(context).pop(true),
+              child: Text(context.tr('reset')),
+           ),
+         ],
+       ),
     );
 
     if (confirmed == true) {
@@ -231,16 +231,16 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
         if (!didPop) Navigator.of(context).pop();
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Secret Notes'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.lock_reset),
-              onPressed: _resetPin,
-              tooltip: 'Reset PIN',
-            ),
-          ],
-        ),
+         appBar: AppBar(
+            title: Text(context.tr('secret_notes')),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.lock_reset),
+                onPressed: _resetPin,
+                tooltip: context.tr('reset_pin_tooltip'),
+              ),
+            ],
+          ),
         body: Column(
           children: [
             CategoryList(

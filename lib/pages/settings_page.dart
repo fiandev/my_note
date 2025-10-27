@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+ import 'package:flutter/material.dart';
+ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+ import 'package:shared_preferences/shared_preferences.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../main.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -10,6 +11,8 @@ class SettingsPage extends StatefulWidget {
   final void Function(AppColorScheme, [Color? customColor]) onChangeColorScheme;
   final Color? customColor;
   final void Function(bool) onAutoSaveChanged;
+  final Locale currentLocale;
+  final void Function(Locale) onChangeLocale;
 
   const SettingsPage({
     super.key,
@@ -19,6 +22,8 @@ class SettingsPage extends StatefulWidget {
     required this.onChangeColorScheme,
     this.customColor,
     required this.onAutoSaveChanged,
+    required this.currentLocale,
+    required this.onChangeLocale,
   });
 
   @override
@@ -27,6 +32,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   bool _autoSaveEnabled = true; // Default value
+  Locale _currentLocale = const Locale('id');
   SharedPreferences? _prefs;
   bool _hasChanges = false;
   bool _isLoading = true;
@@ -40,8 +46,11 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _loadSettings() async {
     _prefs = await SharedPreferences.getInstance();
     if (_prefs != null) {
+      final localeString = _prefs!.getString('locale') ?? 'id';
+      final locale = Locale(localeString);
       setState(() {
         _autoSaveEnabled = _prefs!.getBool('autoSaveEnabled') ?? true;
+        _currentLocale = locale;
         _isLoading = false;
       });
     }
@@ -58,38 +67,86 @@ class _SettingsPageState extends State<SettingsPage> {
     widget.onAutoSaveChanged(_autoSaveEnabled);
   }
 
+  Future<void> _changeLocale(Locale newLocale) async {
+    setState(() {
+      _currentLocale = newLocale;
+      _hasChanges = true;
+    });
+    if (_prefs != null) {
+      await _prefs!.setString('locale', newLocale.languageCode);
+    }
+    widget.onChangeLocale(newLocale);
+  }
+
   void _markChanges() {
     setState(() {
       _hasChanges = true;
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return PopScope(
+   @override
+   Widget build(BuildContext context) {
+     final languageItems = [
+       DropdownMenuItem(
+         value: const Locale('en'),
+         child: Text('english'.tr()),
+       ),
+       DropdownMenuItem(
+         value: const Locale('id'),
+         child: Text('indonesian'.tr()),
+       ),
+     ];
+
+     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop || !_hasChanges) return;
 
         // Show notification that settings were changed
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Settings updated'),
-            duration: Duration(seconds: 2),
-          ),
-        );
+         ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(
+             content: Text('settings_updated'.tr()),
+             duration: const Duration(seconds: 2),
+           ),
+         );
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Settings'),
-        ),
+         appBar: AppBar(
+           title: Text('settings'.tr()),
+         ),
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : ListView(
                 children: [
+                   // Language Selection
+                   ListTile(
+                     title: Text('language'.tr()),
+                      trailing: DropdownButton<Locale>(
+                        value: _currentLocale,
+                        onChanged: (Locale? newLocale) {
+                          if (newLocale != null) {
+                            _changeLocale(newLocale);
+                          }
+                        },
+                        items: languageItems,
+                      ),
+                   ),
+                  const Divider(),
+
+                  // Auto-Save Toggle
+                  ListTile(
+                    title: Text('auto_save_notes'.tr()),
+                    subtitle: Text('auto_save_subtitle'.tr()),
+                    trailing: Switch(
+                      value: _autoSaveEnabled,
+                      onChanged: (value) => _toggleAutoSave(),
+                    ),
+                  ),
+                  const Divider(),
+
                   // Theme Toggle
                   ListTile(
-                    title: const Text('Dark Mode'),
+                    title: Text('dark_mode'.tr()),
                     trailing: Switch(
                       value: widget.themeMode == ThemeMode.dark,
                       onChanged: (value) {
@@ -100,14 +157,14 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const Divider(),
 
-                  // Color Scheme Section
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      'Theme Color',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
+                   // Color Scheme Section
+                   Padding(
+                     padding: const EdgeInsets.all(16.0),
+                     child: Text(
+                       'theme_color'.tr(),
+                       style: Theme.of(context).textTheme.titleMedium,
+                     ),
+                   ),
                   SizedBox(
                     height: 60,
                     child: ListView(
@@ -120,28 +177,28 @@ class _SettingsPageState extends State<SettingsPage> {
                               showDialog(
                                 context: context,
                                 builder: (context) {
-                                  return AlertDialog(
-                                    title: const Text('Pick a color'),
-                                    content: SingleChildScrollView(
-                                      child: ColorPicker(
-                                        pickerColor: widget.customColor ??
-                                            widget.colorScheme.color,
-                                        onColorChanged: (color) {
-                                          widget.onChangeColorScheme(
-                                              AppColorScheme.custom, color);
-                                          _markChanges();
-                                        },
-                                      ),
-                                    ),
-                                    actions: <Widget>[
-                                      TextButton(
-                                        child: const Text('Done'),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                    ],
-                                  );
+                                   return AlertDialog(
+                                     title: Text('pick_color'.tr()),
+                                     content: SingleChildScrollView(
+                                       child: ColorPicker(
+                                         pickerColor: widget.customColor ??
+                                             widget.colorScheme.color,
+                                         onColorChanged: (color) {
+                                           widget.onChangeColorScheme(
+                                               AppColorScheme.custom, color);
+                                           _markChanges();
+                                         },
+                                       ),
+                                     ),
+                                     actions: <Widget>[
+                                       TextButton(
+                                         child: Text('done'.tr()),
+                                         onPressed: () {
+                                           Navigator.of(context).pop();
+                                         },
+                                       ),
+                                     ],
+                                   );
                                 },
                               );
                             },
@@ -194,17 +251,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ),
                   const Divider(),
-
-                  // Auto-Save Toggle
-                  ListTile(
-                    title: const Text('Auto-Save Notes'),
-                    subtitle: const Text(
-                        'Automatically save notes when closing if title and content are not empty'),
-                    trailing: Switch(
-                      value: _autoSaveEnabled,
-                      onChanged: (value) => _toggleAutoSave(),
-                    ),
-                  ),
                 ],
               ),
       ),

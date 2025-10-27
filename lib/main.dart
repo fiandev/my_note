@@ -1,16 +1,30 @@
 // lib/main.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter_quill.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'pages/main_screen.dart'; // pastikan path ini sesuai
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
   await initializeDateFormatting('id_ID', null);
-  runApp(const MyApp());
+
+
+
+  runApp(
+    Phoenix(
+      child: EasyLocalization(
+        supportedLocales: const [Locale('en'), Locale('id')],
+        path: 'lang',
+        fallbackLocale: const Locale('id'),
+        useOnlyLangCode: true,
+        child: const MyApp(),
+      ),
+    ),
+  );
 }
 
 enum AppColorScheme {
@@ -40,6 +54,7 @@ class _MyAppState extends State<MyApp> {
   AppColorScheme _colorScheme = AppColorScheme.blue;
   Color? _customColor;
   bool _autoSaveEnabled = true;
+  Locale _locale = const Locale('id');
 
   // Shared prefs instance
   SharedPreferences? _prefs;
@@ -61,6 +76,7 @@ class _MyAppState extends State<MyApp> {
         _prefs!.getString('colorScheme') ?? AppColorScheme.blue.name;
     final customColorValue = _prefs!.getInt('customColor');
     final autoSaveEnabled = _prefs!.getBool('autoSaveEnabled') ?? true;
+    final localeString = _prefs!.getString('locale') ?? 'id';
 
     setState(() {
       _themeMode = ThemeMode.values[themeModeIndex];
@@ -72,9 +88,12 @@ class _MyAppState extends State<MyApp> {
         _customColor = Color(customColorValue);
       }
       _autoSaveEnabled = autoSaveEnabled;
+      _locale = Locale(localeString);
       _initialized = true; // siap untuk lanjut dari splash
     });
   }
+
+
 
   void _onAutoSaveChanged(bool enabled) {
     setState(() {
@@ -105,16 +124,30 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  Future<void> _changeLocale(Locale newLocale) async {
+    setState(() {
+      _locale = newLocale;
+    });
+    await _prefs?.setString('locale', newLocale.languageCode);
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
+    if (context.locale != _locale) {
+      context.setLocale(_locale);
+    }
+
     final seedColor =
         _colorScheme == AppColorScheme.custom && _customColor != null
             ? _customColor!
             : _colorScheme.color;
 
     return MaterialApp(
-      title: 'MyNote',
+      title: 'app_name'.tr(),
       debugShowCheckedModeBanner: false,
+      locale: _locale,
       theme: ThemeData(
         brightness: Brightness.light,
         scaffoldBackgroundColor: Colors.grey.shade100,
@@ -135,23 +168,18 @@ class _MyAppState extends State<MyApp> {
         ),
         useMaterial3: true,
       ),
-       themeMode: _themeMode,
-       localizationsDelegates: const [
-         GlobalMaterialLocalizations.delegate,
-         GlobalCupertinoLocalizations.delegate,
-         GlobalWidgetsLocalizations.delegate,
-         FlutterQuillLocalizations.delegate,
-       ],
-       supportedLocales: const [Locale('id', 'ID')],
+      themeMode: _themeMode,
+      localizationsDelegates: context.localizationDelegates,
+      supportedLocales: context.supportedLocales,
 
-       // Home: tampilkan SplashPage sampai _initialized == true, lalu MainScreen
+      // Home: tampilkan SplashPage sampai _initialized == true, lalu MainScreen
       home: SplashPage(
         initialized: _initialized,
         onFinishInitialization: () {
           // nothing needed here, widget will rebuild and replace itself
         },
         // Kirimkan builder MainScreen ketika sudah siap
-        mainScreenBuilder: () => MainScreen(
+         mainScreenBuilder: () => MainScreen(
           onToggleTheme: _toggleTheme,
           themeMode: _themeMode,
           colorScheme: _colorScheme,
@@ -159,6 +187,8 @@ class _MyAppState extends State<MyApp> {
           customColor: _customColor,
           autoSaveEnabled: _autoSaveEnabled,
           onAutoSaveChanged: _onAutoSaveChanged,
+          currentLocale: _locale,
+          onChangeLocale: _changeLocale,
         ),
       ),
     );
@@ -273,7 +303,7 @@ class _SplashPageState extends State<SplashPage>
               logo,
               const SizedBox(height: 12),
               Text(
-                'MyNote',
+                'app_name'.tr(),
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),

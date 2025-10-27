@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
-import '../services/pin_service.dart';
-import '../widgets/pin_input.dart';
+ import 'package:flutter/material.dart';
+ import '../services/pin_service.dart';
+ import '../widgets/pin_input.dart';
+ import 'package:easy_localization/easy_localization.dart';
 
 class PinSetupPage extends StatefulWidget {
   final bool isForReset;
@@ -34,10 +35,10 @@ class _PinSetupPageState extends State<PinSetupPage> {
         }
       } else {
         setState(() {
-          _error = "PIN tidak cocok. Coba lagi.";
-          _firstPin = null;
-          _isConfirming = false;
-        });
+           _error = 'pin_mismatch'.tr();
+           _firstPin = null;
+           _isConfirming = false;
+         });
       }
     }
   }
@@ -46,14 +47,14 @@ class _PinSetupPageState extends State<PinSetupPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: Text(_isConfirming ? "Konfirmasi PIN" : "Buat PIN Baru")),
+           title: Text(_isConfirming ? 'confirm_pin'.tr() : 'create_pin'.tr())),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(_isConfirming
-                ? "Masukkan ulang PIN Anda"
-                : "Masukkan PIN baru (6 digit)"),
+             Text(_isConfirming
+                 ? 'reenter_pin'.tr()
+                 : 'enter_new_pin'.tr()),
             const SizedBox(height: 16),
             if (_error != null)
               Padding(

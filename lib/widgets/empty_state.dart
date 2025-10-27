@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+ import 'package:flutter/material.dart';
+ import 'package:easy_localization/easy_localization.dart';
 
 class EmptyState extends StatelessWidget {
   const EmptyState({super.key});
@@ -15,17 +16,17 @@ class EmptyState extends StatelessWidget {
             color: Colors.grey.shade400,
           ),
           const SizedBox(height: 16),
-          Text(
-            'No notes yet',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.grey.shade600,
-                ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Tap the + button to create a new note.',
-            style: TextStyle(color: Colors.grey.shade500),
-          ),
+           Text(
+             'no_notes_yet'.tr(),
+             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                   color: Colors.grey.shade600,
+                 ),
+           ),
+           const SizedBox(height: 8),
+           Text(
+             'tap_plus_create'.tr(),
+             style: TextStyle(color: Colors.grey.shade500),
+           ),
         ],
       ),
     );
