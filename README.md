@@ -1,10 +1,11 @@
-![Flutter](https://img.shields.io/badge/Flutter-3.35.7-blue.svg)
-![Version](https://img.shields.io/badge/dynamic/yaml?url=https://raw.githubusercontent.com/fiandev/my_note/master/pubspec.yaml&query=$.version&label=version&color=green)
-![License](https://img.shields.io/github/license/fiandev/my_note)
+![Flutter](https://img.shields.io/badge/Flutter-3.35.7-pink.svg)
+![Version](https://img.shields.io/badge/dynamic/yaml?url=https://raw.githubusercontent.com/fiandev/my_note/master/pubspec.yaml&query=$.version&label=version&color=pink)
+![License](https://img.shields.io/badge/License-MIT-pink)
+
 
 # MyNote 📝
 
-<img width="1920" height="1080" alt="MyNote Preview" src="https://github.com/user-attachments/assets/e4e81767-ac07-4f31-bb52-2d6c6231fd46" />
+<img width="1920" height="1080" alt="MyNote Preview" src="https://github.com/user-attachments/assets/57d59e01-8ccf-434b-8efc-fad290835546" />
 
 ####  A simple and secure note-taking app built with Flutter. Keep your thoughts organized, protected, and accessible across all your devices.
 
