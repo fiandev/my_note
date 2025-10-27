@@ -280,7 +280,7 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
       flatList.addAll(value);
     });
 
-    return ReorderableListView.builder(
+    return ListView.builder(
       padding: const EdgeInsets.all(8.0),
       itemCount: flatList.length,
       itemBuilder: (context, index) {
@@ -291,55 +291,43 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
         if (item is Note) {
           return Dismissible(
             key: Key(item.id),
-            direction: DismissDirection.horizontal,
-            background: Container(
-              color: Colors.red,
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: const Icon(Icons.delete, color: Colors.white),
-            ),
-            secondaryBackground: Container(
-              color: Colors.red,
-              alignment: Alignment.centerLeft,
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: const Icon(Icons.delete, color: Colors.white),
-            ),
-            onDismissed: (_) => _deleteNote(item),
-            child: ReorderableDragStartListener(
-              index: index,
-              key: Key(item.id),
-              child: NoteCard(
-                note: item,
-                index: index,
-                onTap: () async {
-                  final updated = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          NoteEditPage(note: item, autoSaveEnabled: true),
-                    ),
-                  );
+             direction: DismissDirection.horizontal,
+             background: Container(
+               color: Colors.red,
+               alignment: Alignment.centerRight,
+               padding: const EdgeInsets.symmetric(horizontal: 20.0),
+               child: const Icon(Icons.delete, color: Colors.white),
+             ),
+             secondaryBackground: Container(
+               color: Colors.red,
+               alignment: Alignment.centerLeft,
+               padding: const EdgeInsets.symmetric(horizontal: 20.0),
+               child: const Icon(Icons.delete, color: Colors.white),
+             ),
+             onDismissed: (_) => _deleteNote(item),
+               child: NoteCard(
+                 note: item,
+                 index: index,
+                 onTap: () async {
+                   final updated = await Navigator.push(
+                     context,
+                     MaterialPageRoute(
+                       builder: (_) =>
+                           NoteEditPage(note: item, autoSaveEnabled: true),
+                     ),
+                   );
 
-                  if (updated is Note) {
-                    addOrUpdateNoteAndSave(updated);
-                  }
-                },
-                onTogglePin: () => _togglePin(item),
-                onDelete: () => _deleteNote(item),
-                getFlatListIndex: (note) => _notes.indexOf(note),
-              ),
-            ),
-          );
+                   if (updated is Note) {
+                     addOrUpdateNoteAndSave(updated);
+                   }
+                 },
+                 onTogglePin: () => _togglePin(item),
+                 onDelete: () => _deleteNote(item),
+               ),
+           );
         }
         return const SizedBox.shrink();
       },
-      onReorder: (oldIndex, newIndex) {},
-      proxyDecorator: (child, index, animation) => Material(
-        elevation: 8.0,
-        color: Colors.transparent,
-        child: child,
-      ),
-      buildDefaultDragHandles: false,
     );
   }
 }

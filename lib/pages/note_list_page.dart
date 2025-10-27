@@ -215,7 +215,7 @@ class NoteListPageState extends State<NoteListPage> {
         return Column(
           children: [
             Expanded(
-              child: ReorderableListView.builder(
+              child: ListView.builder(
                 padding: const EdgeInsets.all(8.0),
                 itemCount: flatList.length,
                 itemBuilder: (context, index) {
@@ -243,35 +243,18 @@ class NoteListPageState extends State<NoteListPage> {
                          child: const Icon(Icons.delete, color: Colors.white),
                        ),
                        onDismissed: (direction) => _deleteNote(item),
-                      child: ReorderableDragStartListener(
-                        index: _getFlatListIndex(item, flatList),
-                        key: Key(item.id),
-                         child: NoteCard(
-                           key: Key(item.id),
-                           note: item,
-                           onTap: () => widget.onNavigateToEditPage(note: item),
-                           onTogglePin: () => _togglePin(item),
-                           onDelete: () => _deleteNote(item),
-                           index: index,
-                           getFlatListIndex: (note) =>
-                               _getFlatListIndex(note, flatList),
-                         ),
-                      ),
+                       child: NoteCard(
+                         key: Key(item.id),
+                         note: item,
+                         onTap: () => widget.onNavigateToEditPage(note: item),
+                         onTogglePin: () => _togglePin(item),
+                         onDelete: () => _deleteNote(item),
+                         index: index,
+                       ),
                     );
                   }
                   return SizedBox(key: ValueKey('empty_$index'));
                 },
-                onReorder: (oldIndex, newIndex) {
-                  // kode onReorder tetap sama
-                },
-                proxyDecorator: (child, index, animation) {
-                  return Material(
-                    elevation: 8.0,
-                    color: Colors.transparent,
-                    child: child,
-                  );
-                },
-                buildDefaultDragHandles: false,
               ),
             ),
           ],
@@ -280,7 +263,5 @@ class NoteListPageState extends State<NoteListPage> {
     );
   }
 
-  int _getFlatListIndex(Note note, List<dynamic> flatList) {
-    return flatList.indexOf(note);
-  }
+
 }

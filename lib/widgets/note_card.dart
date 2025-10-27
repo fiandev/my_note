@@ -11,8 +11,6 @@ class NoteCard extends StatelessWidget {
   final VoidCallback onTogglePin;
   final VoidCallback onDelete;
   final int index;
-  final int Function(Note) getFlatListIndex;
-
   const NoteCard({
     super.key,
     required this.note,
@@ -20,7 +18,6 @@ class NoteCard extends StatelessWidget {
     required this.onTogglePin,
     required this.onDelete,
     required this.index,
-    required this.getFlatListIndex,
   });
 
   @override
@@ -28,10 +25,7 @@ class NoteCard extends StatelessWidget {
     // Pastikan locale 'id_ID' sudah diinisialisasi
     initializeDateFormatting('id_ID', null);
 
-    return ReorderableDragStartListener(
-      index: getFlatListIndex(note),
-      key: key,
-      child: Card(
+    return Card(
         margin: const EdgeInsets.symmetric(vertical: 4.0),
         elevation: 2,
         child: InkWell(
@@ -148,7 +142,6 @@ class NoteCard extends StatelessWidget {
             ),
           ),
         ),
-      ),
     );
   }
 }
