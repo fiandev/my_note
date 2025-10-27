@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.2.5
+
+- feat: implement secure note sharing via QR codes and local network
+- feat: add multi-select, share, and QR scan for secret notes
+- feat: style QR codes with primary theme color
+- feat: refactor sharing functionality with cancel selection
+
 ## v1.2.2
 
 - feat(lang): add support for multiple languages
