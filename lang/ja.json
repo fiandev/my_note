@@ -49,5 +49,7 @@
   "pin_mismatch": "PINが一致しません。もう一度お試しください。",
   "enter_pin": "PINを入力",
   "enter_pin_continue": "続行するにはPINを入力してください",
-  "pin_incorrect": "PINが正しくありません。もう一度お試しください。"
-}
+   "pin_incorrect": "PINが正しくありません。もう一度お試しください。",
+   "share_note": "ノートを共有",
+   "scan_qr": "QRコードをスキャン"
+ }

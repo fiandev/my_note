@@ -45,7 +45,9 @@
 		<true/>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
-		<key>UIStatusBarHidden</key>
-		<false/>
-	</dict>
+ 		<key>UIStatusBarHidden</key>
+ 		<false/>
+ 		<key>NSCameraUsageDescription</key>
+ 		<string>This app needs camera access to scan QR codes for sharing notes.</string>
+ 	</dict>
 </plist>

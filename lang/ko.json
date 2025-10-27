@@ -49,5 +49,7 @@
   "pin_mismatch": "PIN이 일치하지 않습니다. 다시 시도하십시오.",
   "enter_pin": "PIN 입력",
   "enter_pin_continue": "계속하려면 PIN을 입력하십시오",
-  "pin_incorrect": "PIN이 잘못되었습니다. 다시 시도하십시오."
-}
+   "pin_incorrect": "PIN이 잘못되었습니다. 다시 시도하십시오.",
+   "share_note": "노트 공유",
+   "scan_qr": "QR 코드 스캔"
+ }

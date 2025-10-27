@@ -10,6 +10,7 @@ class NoteCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onTogglePin;
   final VoidCallback onDelete;
+  final VoidCallback onShare;
   final int index;
   const NoteCard({
     super.key,
@@ -17,6 +18,7 @@ class NoteCard extends StatelessWidget {
     required this.onTap,
     required this.onTogglePin,
     required this.onDelete,
+    required this.onShare,
     required this.index,
   });
 
@@ -69,18 +71,23 @@ class NoteCard extends StatelessWidget {
                          overflow: TextOverflow.ellipsis,
                        ),
                      ),
-                     IconButton(
-                       icon: Icon(
-                         note.isPinned
-                             ? Icons.push_pin
-                             : Icons.push_pin_outlined,
-                         color: note.isPinned
-                             ? Theme.of(context).colorScheme.primary
-                             : null,
-                       ),
-                       onPressed: onTogglePin,
-                        tooltip: note.isPinned ? 'unpin_note'.tr() : 'pin_note'.tr(),
-                     ),
+                      IconButton(
+                        icon: Icon(
+                          note.isPinned
+                              ? Icons.push_pin
+                              : Icons.push_pin_outlined,
+                          color: note.isPinned
+                              ? Theme.of(context).colorScheme.primary
+                              : null,
+                        ),
+                        onPressed: onTogglePin,
+                         tooltip: note.isPinned ? 'unpin_note'.tr() : 'pin_note'.tr(),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.share),
+                        onPressed: onShare,
+                        tooltip: 'share_note'.tr(),
+                      ),
                    ],
                  ),
 

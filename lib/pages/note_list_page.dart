@@ -10,10 +10,12 @@
 
 class NoteListPage extends StatefulWidget {
   final void Function({Note? note}) onNavigateToEditPage;
+  final void Function(Note note) onShareNote;
 
   const NoteListPage({
     super.key,
     required this.onNavigateToEditPage,
+    required this.onShareNote,
   });
 
   @override
@@ -244,14 +246,15 @@ class NoteListPageState extends State<NoteListPage> {
                          child: const Icon(Icons.delete, color: Colors.white),
                        ),
                        onDismissed: (direction) => _deleteNote(item),
-                       child: NoteCard(
-                         key: Key(item.id),
-                         note: item,
-                         onTap: () => widget.onNavigateToEditPage(note: item),
-                         onTogglePin: () => _togglePin(item),
-                         onDelete: () => _deleteNote(item),
-                         index: index,
-                       ),
+                        child: NoteCard(
+                          key: Key(item.id),
+                          note: item,
+                          onTap: () => widget.onNavigateToEditPage(note: item),
+                          onTogglePin: () => _togglePin(item),
+                          onDelete: () => _deleteNote(item),
+                          onShare: () => widget.onShareNote(item),
+                          index: index,
+                        ),
                     );
                   }
                   return SizedBox(key: ValueKey('empty_$index'));

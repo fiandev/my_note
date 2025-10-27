@@ -49,5 +49,7 @@
   "pin_mismatch": "PIN tidak cocok. Coba lagi.",
   "enter_pin": "Masukkan PIN",
   "enter_pin_continue": "Masukkan PIN Anda untuk melanjutkan",
-  "pin_incorrect": "PIN salah, coba lagi."
-}
+   "pin_incorrect": "PIN salah, coba lagi.",
+   "share_note": "Bagikan Catatan",
+   "scan_qr": "Pindai Kode QR"
+ }

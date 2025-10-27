@@ -49,5 +49,7 @@
   "pin_mismatch": "PIN不匹配。请再试一次。",
   "enter_pin": "输入PIN",
   "enter_pin_continue": "输入您的PIN以继续",
-  "pin_incorrect": "PIN不正确，请重试。"
-}
+   "pin_incorrect": "PIN不正确，请重试。",
+   "share_note": "分享笔记",
+   "scan_qr": "扫描二维码"
+ }

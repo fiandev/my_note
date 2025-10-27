@@ -49,5 +49,7 @@
   "pin_mismatch": "PINs do not match. Try again.",
   "enter_pin": "Enter PIN",
   "enter_pin_continue": "Enter your PIN to continue",
-  "pin_incorrect": "Incorrect PIN, try again."
-}
+   "pin_incorrect": "Incorrect PIN, try again.",
+   "share_note": "Share Note",
+   "scan_qr": "Scan QR Code"
+ }

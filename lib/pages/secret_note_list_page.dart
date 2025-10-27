@@ -308,25 +308,26 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
                child: const Icon(Icons.delete, color: Colors.white),
              ),
              onDismissed: (_) => _deleteNote(item),
-               child: NoteCard(
-                 note: item,
-                 index: index,
-                 onTap: () async {
-                   final updated = await Navigator.push(
-                     context,
-                     MaterialPageRoute(
-                       builder: (_) =>
-                           NoteEditPage(note: item, autoSaveEnabled: true),
-                     ),
-                   );
+                child: NoteCard(
+                  note: item,
+                  index: index,
+                  onTap: () async {
+                    final updated = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            NoteEditPage(note: item, autoSaveEnabled: true),
+                      ),
+                    );
 
-                   if (updated is Note) {
-                     addOrUpdateNoteAndSave(updated);
-                   }
-                 },
-                 onTogglePin: () => _togglePin(item),
-                 onDelete: () => _deleteNote(item),
-               ),
+                    if (updated is Note) {
+                      addOrUpdateNoteAndSave(updated);
+                    }
+                  },
+                  onTogglePin: () => _togglePin(item),
+                  onDelete: () => _deleteNote(item),
+                  onShare: () {}, // No sharing for secret notes
+                ),
            );
         }
         return const SizedBox.shrink();
