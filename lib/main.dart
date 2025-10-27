@@ -17,7 +17,7 @@ Future<void> main() async {
   runApp(
     Phoenix(
       child: EasyLocalization(
-        supportedLocales: const [Locale('en'), Locale('id')],
+        supportedLocales: const [Locale('en'), Locale('id'), Locale('ja'), Locale('ko'), Locale('zh')],
         path: 'lang',
         fallbackLocale: const Locale('id'),
         useOnlyLangCode: true,

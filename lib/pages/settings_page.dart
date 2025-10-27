@@ -77,6 +77,18 @@ class _SettingsPageState extends State<SettingsPage> {
          value: const Locale('id'),
          child: Text('indonesian'.tr()),
        ),
+       DropdownMenuItem(
+         value: const Locale('ja'),
+         child: Text('japanese'.tr()),
+       ),
+       DropdownMenuItem(
+         value: const Locale('ko'),
+         child: Text('korean'.tr()),
+       ),
+       DropdownMenuItem(
+         value: const Locale('zh'),
+         child: Text('mandarin'.tr()),
+       ),
      ];
 
      return PopScope(
@@ -105,11 +117,9 @@ class _SettingsPageState extends State<SettingsPage> {
                      title: Text('language'.tr()),
                       trailing: DropdownButton<Locale>(
                         value: context.locale,
-                        onChanged: (Locale? newLocale) {
+                        onChanged: (Locale? newLocale) async {
                           if (newLocale != null) {
-                            context.setLocale(newLocale);
-                            Phoenix.rebirth(context);
-                            _markChanges();
+                            await context.setLocale(newLocale);
                           }
                         },
                         items: languageItems,

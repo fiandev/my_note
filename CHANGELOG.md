@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.2.4
+
+- feat(lang): add support for multiple languages
 
 ## v1.2.1
 
