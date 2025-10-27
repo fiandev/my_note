@@ -54,7 +54,6 @@ class _MyAppState extends State<MyApp> {
   AppColorScheme _colorScheme = AppColorScheme.blue;
   Color? _customColor;
   bool _autoSaveEnabled = true;
-  Locale _locale = const Locale('id');
 
   // Shared prefs instance
   SharedPreferences? _prefs;
@@ -76,7 +75,6 @@ class _MyAppState extends State<MyApp> {
         _prefs!.getString('colorScheme') ?? AppColorScheme.blue.name;
     final customColorValue = _prefs!.getInt('customColor');
     final autoSaveEnabled = _prefs!.getBool('autoSaveEnabled') ?? true;
-    final localeString = _prefs!.getString('locale') ?? 'id';
 
     setState(() {
       _themeMode = ThemeMode.values[themeModeIndex];
@@ -88,7 +86,6 @@ class _MyAppState extends State<MyApp> {
         _customColor = Color(customColorValue);
       }
       _autoSaveEnabled = autoSaveEnabled;
-      _locale = Locale(localeString);
       _initialized = true; // siap untuk lanjut dari splash
     });
   }
@@ -124,20 +121,8 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  Future<void> _changeLocale(Locale newLocale) async {
-    setState(() {
-      _locale = newLocale;
-    });
-    await _prefs?.setString('locale', newLocale.languageCode);
-  }
-
-
-
   @override
   Widget build(BuildContext context) {
-    if (context.locale != _locale) {
-      context.setLocale(_locale);
-    }
 
     final seedColor =
         _colorScheme == AppColorScheme.custom && _customColor != null
@@ -147,7 +132,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'app_name'.tr(),
       debugShowCheckedModeBanner: false,
-      locale: _locale,
+      locale: context.locale,
       theme: ThemeData(
         brightness: Brightness.light,
         scaffoldBackgroundColor: Colors.grey.shade100,
@@ -187,8 +172,6 @@ class _MyAppState extends State<MyApp> {
           customColor: _customColor,
           autoSaveEnabled: _autoSaveEnabled,
           onAutoSaveChanged: _onAutoSaveChanged,
-          currentLocale: _locale,
-          onChangeLocale: _changeLocale,
         ),
       ),
     );

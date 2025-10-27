@@ -202,19 +202,22 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
        ),
     );
 
-    if (confirmed == true) {
-      final newPin = await Navigator.push<String>(
-        context,
-        MaterialPageRoute(builder: (context) => PinSetupPage(isForReset: true)),
-      );
+     if (confirmed == true) {
+       String? newPin;
+       if (mounted) {
+         newPin = await Navigator.push<String>(
+           context,
+           MaterialPageRoute(builder: (context) => PinSetupPage(isForReset: true)),
+         );
+       }
 
-      if (newPin != null) {
-        await _pinService.resetPin(newPin, widget.pin);
-        if (mounted) {
-          Navigator.of(context).pop(); // Go back to main screen
-        }
-      }
-    }
+       if (newPin != null) {
+         await _pinService.resetPin(newPin, widget.pin);
+         if (mounted) {
+           Navigator.of(context).pop(); // Go back to main screen
+         }
+       }
+     }
   }
 
   @override

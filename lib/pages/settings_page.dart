@@ -1,8 +1,9 @@
- import 'package:flutter/material.dart';
- import 'package:flutter_colorpicker/flutter_colorpicker.dart';
- import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../main.dart';
+import 'package:my_note/main.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 
 class SettingsPage extends StatefulWidget {
   final VoidCallback onToggleTheme;
@@ -11,8 +12,6 @@ class SettingsPage extends StatefulWidget {
   final void Function(AppColorScheme, [Color? customColor]) onChangeColorScheme;
   final Color? customColor;
   final void Function(bool) onAutoSaveChanged;
-  final Locale currentLocale;
-  final void Function(Locale) onChangeLocale;
 
   const SettingsPage({
     super.key,
@@ -22,8 +21,6 @@ class SettingsPage extends StatefulWidget {
     required this.onChangeColorScheme,
     this.customColor,
     required this.onAutoSaveChanged,
-    required this.currentLocale,
-    required this.onChangeLocale,
   });
 
   @override
@@ -32,7 +29,6 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   bool _autoSaveEnabled = true; // Default value
-  Locale _currentLocale = const Locale('id');
   SharedPreferences? _prefs;
   bool _hasChanges = false;
   bool _isLoading = true;
@@ -46,11 +42,8 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _loadSettings() async {
     _prefs = await SharedPreferences.getInstance();
     if (_prefs != null) {
-      final localeString = _prefs!.getString('locale') ?? 'id';
-      final locale = Locale(localeString);
       setState(() {
         _autoSaveEnabled = _prefs!.getBool('autoSaveEnabled') ?? true;
-        _currentLocale = locale;
         _isLoading = false;
       });
     }
@@ -65,17 +58,6 @@ class _SettingsPageState extends State<SettingsPage> {
       await _prefs!.setBool('autoSaveEnabled', _autoSaveEnabled);
     }
     widget.onAutoSaveChanged(_autoSaveEnabled);
-  }
-
-  Future<void> _changeLocale(Locale newLocale) async {
-    setState(() {
-      _currentLocale = newLocale;
-      _hasChanges = true;
-    });
-    if (_prefs != null) {
-      await _prefs!.setString('locale', newLocale.languageCode);
-    }
-    widget.onChangeLocale(newLocale);
   }
 
   void _markChanges() {
@@ -122,10 +104,12 @@ class _SettingsPageState extends State<SettingsPage> {
                    ListTile(
                      title: Text('language'.tr()),
                       trailing: DropdownButton<Locale>(
-                        value: _currentLocale,
+                        value: context.locale,
                         onChanged: (Locale? newLocale) {
                           if (newLocale != null) {
-                            _changeLocale(newLocale);
+                            context.setLocale(newLocale);
+                            Phoenix.rebirth(context);
+                            _markChanges();
                           }
                         },
                         items: languageItems,
