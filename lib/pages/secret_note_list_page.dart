@@ -296,6 +296,13 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
                 data: networkData,
                 version: QrVersions.auto,
                 size: 200.0,
+                dataModuleStyle: QrDataModuleStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                eyeStyle: QrEyeStyle(
+                  eyeShape: QrEyeShape.square,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               )
             ],
           ),
@@ -397,6 +404,13 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
                 data: networkData,
                 version: QrVersions.auto,
                 size: 200.0,
+                dataModuleStyle: QrDataModuleStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                eyeStyle: QrEyeStyle(
+                  eyeShape: QrEyeShape.square,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               )
             ],
           ),

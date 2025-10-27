@@ -150,6 +150,13 @@ class _MainScreenState extends State<MainScreen> {
                 data: networkData,
                 version: QrVersions.auto,
                 size: 200.0,
+                dataModuleStyle: QrDataModuleStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                eyeStyle: QrEyeStyle(
+                  eyeShape: QrEyeShape.square,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               )
             ],
           ),
