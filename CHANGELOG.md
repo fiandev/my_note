@@ -1,6 +1,10 @@
 # Changelog
 
 
+## v1.2.1
+
+- fix(pin): Fix data corruption after PIN reset by using correct plain PIN for decryption
+
 ## v1.2.0
 
 - fix(note): support insert image
