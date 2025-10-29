@@ -58,12 +58,12 @@ class NoteService {
     // Remove notes that are not in the current list (for delete)
     if (pin != null && pin.isNotEmpty) {
       // Saving secret notes, remove secret notes not in list
-      allNotes.removeWhere((note) =>
-          note.isSecret && !notes.any((n) => n.id == note.id));
+      allNotes.removeWhere(
+          (note) => note.isSecret && !notes.any((n) => n.id == note.id));
     } else {
       // Saving public notes, remove public notes not in list
-      allNotes.removeWhere((note) =>
-          !note.isSecret && !notes.any((n) => n.id == note.id));
+      allNotes.removeWhere(
+          (note) => !note.isSecret && !notes.any((n) => n.id == note.id));
     }
 
     // Encrypt secret notes if PIN is provided

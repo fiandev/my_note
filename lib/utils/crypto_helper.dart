@@ -8,8 +8,6 @@ class CryptoHelper {
   }
 
   enc.IV _ivFromId(String id) {
-    // buat IV deterministik berdasarkan ID note
-    // AES butuh 16 byte IV → kalau id kurang dari 16, di-pad; kalau lebih, dipotong
     return enc.IV.fromUtf8(id.padRight(16, '0').substring(0, 16));
   }
 

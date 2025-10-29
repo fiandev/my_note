@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 
-import '../pages/main_screen.dart'; // Assuming MainScreen is in pages/main_screen.dart
+// Assuming MainScreen is in pages/main_screen.dart
 
 class SplashPage extends StatefulWidget {
   final bool initialized;

@@ -1,12 +1,13 @@
- import 'dart:async';
- import 'package:flutter/material.dart';
- import 'package:shared_preferences/shared_preferences.dart';
- import 'package:intl/date_symbol_data_local.dart';
- import 'package:easy_localization/easy_localization.dart';
- import 'package:flutter_quill/flutter_quill.dart';
- import 'dart:ui' as ui;
- import 'pages/main_screen.dart'; // pastikan path ini sesuai
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_quill/flutter_quill.dart';
+import 'dart:ui' as ui;
+import 'pages/main_screen.dart';
 import 'widgets/splash_page.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
@@ -14,7 +15,13 @@ Future<void> main() async {
 
   runApp(
     EasyLocalization(
-      supportedLocales: const [Locale('en'), Locale('id'), Locale('ja'), Locale('ko'), Locale('zh')],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('id'),
+        Locale('ja'),
+        Locale('ko'),
+        Locale('zh')
+      ],
       path: 'lang',
       fallbackLocale: const Locale('id'),
       useOnlyLangCode: true,
@@ -65,7 +72,6 @@ class _MyAppState extends State<MyApp> {
     _initAndLoadSettings();
   }
 
-
   Future<void> _initAndLoadSettings() async {
     _prefs = await SharedPreferences.getInstance();
 
@@ -102,8 +108,6 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-
-
   void _onAutoSaveChanged(bool enabled) {
     setState(() {
       _autoSaveEnabled = enabled;
@@ -135,7 +139,6 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-
     final seedColor =
         _colorScheme == AppColorScheme.custom && _customColor != null
             ? _customColor!
@@ -171,7 +174,10 @@ class _MyAppState extends State<MyApp> {
               useMaterial3: true,
             ),
             themeMode: _themeMode,
-            localizationsDelegates: [...context.localizationDelegates, FlutterQuillLocalizations.delegate],
+            localizationsDelegates: [
+              ...context.localizationDelegates,
+              FlutterQuillLocalizations.delegate
+            ],
             supportedLocales: context.supportedLocales,
 
             // Home: tampilkan SplashPage sampai _initialized == true, lalu MainScreen
@@ -207,4 +213,3 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
-

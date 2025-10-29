@@ -225,7 +225,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 widget.onChangeColorScheme(scheme);
                                 _markChanges();
                               },
-                              child: Container(
+                              child: SizedBox(
                                 width: 44,
                                 height: 44,
                                 // decoration: BoxDecoration(

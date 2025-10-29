@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:my_note/pages/secret_note_list_page.dart';
-import '../models/note.dart';
 import '../services/pin_service.dart';
 import '../widgets/pin_input.dart';
 import 'package:easy_localization/easy_localization.dart';

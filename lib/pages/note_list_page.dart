@@ -179,9 +179,7 @@ class NoteListPageState extends State<NoteListPage> {
     });
   }
 
-  void _toggleNoteSelection(Note note) {
-    widget.onToggleSelection?.call(note);
-  }
+
 
   @override
   Widget build(BuildContext context) {
