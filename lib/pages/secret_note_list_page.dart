@@ -229,8 +229,7 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
       if (note.isSecret) {
         final encryptedContent =
             _crypto.encrypt(note.content, widget.pin, note.id);
-        print(
-            'Encrypted content for note ${note.id}: ${encryptedContent.substring(0, 20)}...'); // Debug
+
         map['content'] = encryptedContent;
       }
       return map;
@@ -259,9 +258,7 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
 
     // Start HTTP server
     final handler = shelf.Pipeline().addHandler((shelf.Request request) {
-      print('Request path: ${request.url.path}');
       if (request.url.path == '/notes' || request.url.path == 'notes') {
-        print('Sharing ${encryptedNotes.length} notes');
         final notesData = jsonEncode(encryptedNotes);
         return shelf.Response.ok(notesData,
             headers: {'Content-Type': 'application/json'});
@@ -275,13 +272,14 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
     } catch (e) {
       server = await io.serve(handler, ip, 0);
     }
-    print('Server running on http://${server.address.host}:${server.port}');
 
-    final networkData =
-        jsonEncode({'ip': server.address.host, 'port': server.port});
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
+
+     final networkData =
+         jsonEncode({'ip': server.address.host, 'port': server.port});
+     if (!mounted) return;
+     showDialog(
+       context: context,
+       builder: (context) => AlertDialog(
         content: SizedBox(
           width: 200,
           height: 250,
@@ -340,8 +338,7 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
     final allMap = {for (var n in allNotes) n.id: n};
     final shareNotes = selectedNotes.map((n) => allMap[n.id] ?? n).toList();
 
-    print(
-        'All notes: ${allNotes.length}, Selected: ${selectedNotes.length}, Share: ${shareNotes.length}');
+
 
     // Get local IP
     final interfaces = await NetworkInterface.list();
@@ -366,9 +363,7 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
 
     // Start HTTP server
     final handler = shelf.Pipeline().addHandler((shelf.Request request) {
-      print('Request path: ${request.url.path}');
       if (request.url.path == '/notes' || request.url.path == 'notes') {
-        print('Sharing ${shareNotes.length} notes');
         final notesData = jsonEncode(shareNotes.map((n) => n.toMap()).toList());
         return shelf.Response.ok(notesData,
             headers: {'Content-Type': 'application/json'});
@@ -382,10 +377,10 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
     } catch (e) {
       server = await io.serve(handler, ip, 0);
     }
-    print('Server running on http://${server.address.host}:${server.port}');
 
     final networkData =
         jsonEncode({'ip': server.address.host, 'port': server.port});
+    if (!mounted) return;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -468,33 +463,36 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
 
   void _scanQRCode() async {
     // Check if platform supports QR scanning
-    if (!(Platform.isAndroid ||
-        Platform.isIOS ||
-        Platform.isMacOS ||
-        Platform.isWindows)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('QR scanning is not supported on this platform')),
-      );
-      return;
-    }
+     if (!(Platform.isAndroid ||
+         Platform.isIOS ||
+         Platform.isMacOS ||
+         Platform.isWindows)) {
+       if (!mounted) return;
+       ScaffoldMessenger.of(context).showSnackBar(
+         SnackBar(
+             content: Text('QR scanning is not supported on this platform')),
+       );
+       return;
+     }
 
     // Check if platform supports camera permission
     if (Platform.isAndroid || Platform.isIOS) {
       final status = await Permission.camera.request();
-      if (!status.isGranted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Camera permission is required to scan QR codes')),
-        );
-        return;
-      }
+     if (!status.isGranted) {
+         if (!mounted) return;
+         ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(
+               content: Text('Camera permission is required to scan QR codes')),
+         );
+         return;
+       }
     }
 
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => Scaffold(
+     if (!mounted) return;
+     final result = await Navigator.push(
+       context,
+       MaterialPageRoute(
+         builder: (context) => Scaffold(
           appBar: AppBar(title: Text('scan_qr'.tr())),
           body: MobileScanner(
             onDetect: (capture) {
@@ -597,11 +595,10 @@ class _SecretNoteListPageState extends State<SecretNoteListPage> {
             try {
               final decryptedContent =
                   _crypto.decrypt(note.content, pin, note.id);
-              print(
-                  'Decrypted content for note ${note.id}: ${decryptedContent.substring(0, 20)}...'); // Debug
+
               note.content = decryptedContent;
             } catch (e) {
-              print('Decrypt failed for note ${note.id}: $e'); // Debug
+
               note.content = '[Encrypted] Wrong PIN or Corrupted data';
               allDecrypted = false;
             }

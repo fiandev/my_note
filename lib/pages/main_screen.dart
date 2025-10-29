@@ -87,8 +87,7 @@ class _MainScreenState extends State<MainScreen> {
     final allMap = {for (var n in allNotes) n.id: n};
     final shareNotes = selectedNotes.map((n) => allMap[n.id] ?? n).toList();
 
-    print(
-        'All notes: ${allNotes.length}, Selected: ${selectedNotes.length}, Share: ${shareNotes.length}');
+
 
     // Get local IP
     final interfaces = await NetworkInterface.list();
@@ -113,9 +112,7 @@ class _MainScreenState extends State<MainScreen> {
 
     // Start HTTP server
     final handler = shelf.Pipeline().addHandler((shelf.Request request) {
-      print('Request path: ${request.url.path}');
       if (request.url.path == '/notes' || request.url.path == 'notes') {
-        print('Sharing ${shareNotes.length} notes');
         final notesData = jsonEncode(shareNotes.map((n) => n.toMap()).toList());
         return shelf.Response.ok(notesData,
             headers: {'Content-Type': 'application/json'});
@@ -129,10 +126,11 @@ class _MainScreenState extends State<MainScreen> {
     } catch (e) {
       server = await io.serve(handler, ip, 0);
     }
-    print('Server running on http://${server.address.host}:${server.port}');
+
 
     final networkData =
         jsonEncode({'ip': server.address.host, 'port': server.port});
+    if (!mounted) return;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -176,33 +174,36 @@ class _MainScreenState extends State<MainScreen> {
 
   void _scanQRCode() async {
     // Check if platform supports QR scanning
-    if (!(Platform.isAndroid ||
-        Platform.isIOS ||
-        Platform.isMacOS ||
-        Platform.isWindows)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('QR scanning is not supported on this platform')),
-      );
-      return;
-    }
+     if (!(Platform.isAndroid ||
+         Platform.isIOS ||
+         Platform.isMacOS ||
+         Platform.isWindows)) {
+       if (!mounted) return;
+       ScaffoldMessenger.of(context).showSnackBar(
+         SnackBar(
+             content: Text('QR scanning is not supported on this platform')),
+       );
+       return;
+     }
 
     // Check if platform supports camera permission
     if (Platform.isAndroid || Platform.isIOS) {
       final status = await Permission.camera.request();
-      if (!status.isGranted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Camera permission is required to scan QR codes')),
-        );
-        return;
-      }
+     if (!status.isGranted) {
+         if (!mounted) return;
+         ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(
+               content: Text('Camera permission is required to scan QR codes')),
+         );
+         return;
+       }
     }
 
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => Scaffold(
+     if (!mounted) return;
+     final result = await Navigator.push(
+       context,
+       MaterialPageRoute(
+         builder: (context) => Scaffold(
           appBar: AppBar(title: Text('scan_qr'.tr())),
           body: MobileScanner(
             onDetect: (capture) {
@@ -236,8 +237,7 @@ class _MainScreenState extends State<MainScreen> {
           final response = await http
               .get(Uri.parse('http://$ip:$port/notes'))
               .timeout(const Duration(seconds: 10));
-          print('Response status: ${response.statusCode}');
-          print('Response body length: ${response.body.length}');
+
           if (response.statusCode == 200) {
             try {
               final List<dynamic> notesJson = jsonDecode(response.body);
@@ -415,8 +415,7 @@ class _MainScreenState extends State<MainScreen> {
                   IconButton(
                     icon: const Icon(Icons.share),
                     onPressed: () {
-                      print(
-                          'Share button pressed, selected: ${_selectedNotes.length}');
+
                       if (_selectedNotes.isNotEmpty) {
                         _shareNote(_selectedNotes);
                       }
@@ -517,7 +516,7 @@ class _MainScreenState extends State<MainScreen> {
         isSelectionMode: _isSelectionMode,
         selectedNotes: _selectedNotes,
         onToggleSelection: (note) {
-          print('Toggle selection: ${note?.title}');
+
           setState(() {
             if (note == null) {
               _isSelectionMode = false;
@@ -530,7 +529,7 @@ class _MainScreenState extends State<MainScreen> {
               }
             }
           });
-          print('Selected notes: ${_selectedNotes.length}');
+
         },
       ),
       floatingActionButton: FloatingActionButton(
