@@ -49,7 +49,6 @@ android {
         }
 
         getByName("debug") {
-            // biarkan default debug signing
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -75,4 +74,35 @@ android {
 
 flutter {
     source = "../.."
+}
+
+gradle.taskGraph.whenReady {
+    allTasks.forEach { task ->
+        if (
+            task.name.contains("bundleRelease", ignoreCase = true) ||
+            task.name.contains("assembleRelease", ignoreCase = true)
+        ) {
+            // pastikan path absolut dari android/app
+            val pubspec = project.projectDir.resolve("../../pubspec.yaml").normalize()
+            if (pubspec.exists()) {
+                val lines = pubspec.readLines().toMutableList()
+                val index = lines.indexOfFirst { it.trim().startsWith("version:") }
+
+                if (index >= 0) {
+                    val line = lines[index]
+                    val version = line.substringAfter("version:").trim()
+                    val parts = version.split("+")
+                    val name = parts[0].trim()
+                    val code = parts.getOrNull(1)?.toIntOrNull() ?: 1
+                    val newCode = code + 1
+
+                    lines[index] = "version: $name+$newCode"
+                    pubspec.writeText(lines.joinToString("\n"))
+                } else {
+                }
+            } else {
+                println("⚠️ pubspec.yaml tidak ditemukan di ${pubspec.absolutePath}")
+            }
+        }
+    }
 }
