@@ -1,8 +1,8 @@
 name: my_note
-description: "A simple app for secure notes"
+description: "A simple and secure note-taking app built with Flutter. Keep your thoughts organized, protected, and accessible across all your devices."
 publish_to: "none"
 
-version: 2.2.5+29
+version: 2.2.6+84
 environment:
   sdk: ">=3.0.0 <4.0.0"
 
