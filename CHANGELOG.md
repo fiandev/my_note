@@ -1,10 +1,10 @@
 # Changelog
 
-## v2.2.6
+## v1.2.6
 
 - feat: update apps logo and name for ryucode release preparation
 
-## v2.2.5
+## v1.2.5
 
 - feat: implement secure note sharing via QR codes and local network
 - feat: add multi-select, share, and QR scan for secret notes
